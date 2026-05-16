@@ -23,7 +23,12 @@ const generationPokemon = ref<Pokemon[]>([])
 const isInitialLoading = ref(true)
 const isPageLoading = ref(false)
 const error = ref<string | null>(null)
+const openCardId = ref<number | null>(null)
 const { t } = useI18n()
+
+function toggleCard(id: number) {
+  openCardId.value = openCardId.value === id ? null : id
+}
 
 const filteredCatalog = computed(() => filterCatalog(catalog.value, searchQuery.value))
 const availableTypes = computed(() =>
@@ -86,7 +91,10 @@ function nextPage() {
 }
 
 onMounted(initialize)
-watch(currentPage, loadPage)
+watch(currentPage, () => {
+  openCardId.value = null
+  loadPage()
+})
 watch(searchQuery, () => {
   if (currentPage.value === 1) {
     void loadPage()
@@ -176,7 +184,14 @@ watch(generation, async () => {
     </section>
 
     <section v-else-if="pokemon.length > 0" class="card-grid">
-      <PokemonCard v-for="entry in pokemon" :key="entry.id" :pokemon="entry" compact />
+      <PokemonCard
+        v-for="entry in pokemon"
+        :key="entry.id"
+        :pokemon="entry"
+        compact
+        :open="openCardId === entry.id"
+        @toggle="toggleCard"
+      />
     </section>
     <p v-else-if="!isPageLoading" class="status">{{ t('pokedex.empty') }}</p>
 

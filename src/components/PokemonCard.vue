@@ -4,6 +4,11 @@ import type { Pokemon } from '../domain/pokemon'
 defineProps<{
   pokemon: Pokemon
   compact?: boolean
+  open?: boolean
+}>()
+
+const emit = defineEmits<{
+  toggle: [id: number]
 }>()
 
 function formatStatName(name: string): string {
@@ -14,7 +19,12 @@ function formatStatName(name: string): string {
 </script>
 
 <template>
-  <article class="pokemon-card" :class="{ 'is-compact': compact }" :data-primary-type="pokemon.types[0]">
+  <article
+    class="pokemon-card"
+    :class="{ 'is-compact': compact, 'is-open': compact && open }"
+    :data-primary-type="pokemon.types[0]"
+    @click="compact && emit('toggle', pokemon.id)"
+  >
     <header class="card-header">
       <span>#{{ String(pokemon.id).padStart(3, '0') }}</span>
       <h2>{{ pokemon.displayName }}</h2>
@@ -25,21 +35,21 @@ function formatStatName(name: string): string {
       <div v-else class="artwork-fallback">No artwork</div>
     </div>
 
-    <div class="card-details">
-      <div class="type-row">
-        <span v-for="type in pokemon.types" :key="type" class="type-pill" :data-type="type">
-          {{ type }}
-        </span>
-      </div>
+    <div class="type-row">
+      <span v-for="type in pokemon.types" :key="type" class="type-pill" :data-type="type">
+        {{ type }}
+      </span>
+    </div>
 
+    <div class="card-details">
       <dl class="facts">
         <div>
           <dt>Height</dt>
-          <dd>{{ pokemon.height }}</dd>
+          <dd>{{ pokemon.height * 10 }} cm</dd>
         </div>
         <div>
           <dt>Weight</dt>
-          <dd>{{ pokemon.weight }}</dd>
+          <dd>{{ (pokemon.weight * 0.1).toFixed(1) }} kg</dd>
         </div>
       </dl>
 
