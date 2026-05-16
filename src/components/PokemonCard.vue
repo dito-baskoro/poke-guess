@@ -1,0 +1,55 @@
+<script setup lang="ts">
+import type { Pokemon } from '../domain/pokemon'
+
+defineProps<{
+  pokemon: Pokemon
+}>()
+
+function formatStatName(name: string): string {
+  return name.replace('-', ' ').toUpperCase()
+}
+</script>
+
+<template>
+  <article class="pokemon-card">
+    <header class="card-header">
+      <span>#{{ String(pokemon.id).padStart(3, '0') }}</span>
+      <h2>{{ pokemon.displayName }}</h2>
+    </header>
+
+    <div class="artwork-frame">
+      <img v-if="pokemon.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
+      <div v-else class="artwork-fallback">No artwork</div>
+    </div>
+
+    <div class="type-row">
+      <span v-for="type in pokemon.types" :key="type" class="type-pill">{{ type }}</span>
+    </div>
+
+    <dl class="facts">
+      <div>
+        <dt>Height</dt>
+        <dd>{{ pokemon.height }}</dd>
+      </div>
+      <div>
+        <dt>Weight</dt>
+        <dd>{{ pokemon.weight }}</dd>
+      </div>
+    </dl>
+
+    <section class="abilities">
+      <h3>Abilities</h3>
+      <p>{{ pokemon.abilities.join(', ') || 'Unknown' }}</p>
+    </section>
+
+    <section class="stats">
+      <h3>Stats</h3>
+      <ul>
+        <li v-for="stat in pokemon.stats" :key="stat.name">
+          <span>{{ formatStatName(stat.name) }}</span>
+          <strong>{{ stat.value }}</strong>
+        </li>
+      </ul>
+    </section>
+  </article>
+</template>
