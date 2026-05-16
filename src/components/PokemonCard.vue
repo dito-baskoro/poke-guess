@@ -3,15 +3,17 @@ import type { Pokemon } from '../domain/pokemon'
 
 defineProps<{
   pokemon: Pokemon
+  compact?: boolean
 }>()
 
 function formatStatName(name: string): string {
+  if (name === 'special-attack') return 'Sp. Attack'
   return name.replace('-', ' ').toUpperCase()
 }
 </script>
 
 <template>
-  <article class="pokemon-card" :data-primary-type="pokemon.types[0]">
+  <article class="pokemon-card" :class="{ 'is-compact': compact }" :data-primary-type="pokemon.types[0]">
     <header class="card-header">
       <span>#{{ String(pokemon.id).padStart(3, '0') }}</span>
       <h2>{{ pokemon.displayName }}</h2>
@@ -22,39 +24,41 @@ function formatStatName(name: string): string {
       <div v-else class="artwork-fallback">No artwork</div>
     </div>
 
-    <div class="type-row">
-      <span v-for="type in pokemon.types" :key="type" class="type-pill" :data-type="type">
-        {{ type }}
-      </span>
+    <div class="card-details">
+      <div class="type-row">
+        <span v-for="type in pokemon.types" :key="type" class="type-pill" :data-type="type">
+          {{ type }}
+        </span>
+      </div>
+
+      <dl class="facts">
+        <div>
+          <dt>Height</dt>
+          <dd>{{ pokemon.height }}</dd>
+        </div>
+        <div>
+          <dt>Weight</dt>
+          <dd>{{ pokemon.weight }}</dd>
+        </div>
+      </dl>
+
+      <section class="abilities">
+        <h3>Abilities</h3>
+        <p>{{ pokemon.abilities.join(', ') || 'Unknown' }}</p>
+      </section>
+
+      <section class="stats">
+        <h3>Stats</h3>
+        <ul>
+          <li v-for="stat in pokemon.stats" :key="stat.name">
+            <span>{{ formatStatName(stat.name) }}</span>
+            <span class="stat-bar" aria-hidden="true">
+              <span class="stat-bar-fill" :style="{ width: `${(stat.value / 255) * 100}%` }"></span>
+            </span>
+            <strong>{{ stat.value }}</strong>
+          </li>
+        </ul>
+      </section>
     </div>
-
-    <dl class="facts">
-      <div>
-        <dt>Height</dt>
-        <dd>{{ pokemon.height }}</dd>
-      </div>
-      <div>
-        <dt>Weight</dt>
-        <dd>{{ pokemon.weight }}</dd>
-      </div>
-    </dl>
-
-    <section class="abilities">
-      <h3>Abilities</h3>
-      <p>{{ pokemon.abilities.join(', ') || 'Unknown' }}</p>
-    </section>
-
-    <section class="stats">
-      <h3>Stats</h3>
-      <ul>
-        <li v-for="stat in pokemon.stats" :key="stat.name">
-          <span>{{ formatStatName(stat.name) }}</span>
-          <span class="stat-bar" aria-hidden="true">
-            <span class="stat-bar-fill" :style="{ width: `${(stat.value / 255) * 100}%` }"></span>
-          </span>
-          <strong>{{ stat.value }}</strong>
-        </li>
-      </ul>
-    </section>
   </article>
 </template>

@@ -12,7 +12,7 @@ import {
 import { pokemonRepository } from '../services/pokemonRepository'
 import { useI18n } from '../i18n'
 
-const pageSize = 10
+const pageSize = 20
 const currentPage = ref(1)
 const generation = ref('1')
 const searchQuery = ref('')
@@ -176,7 +176,7 @@ watch(generation, async () => {
     </section>
 
     <section v-else-if="pokemon.length > 0" class="card-grid">
-      <PokemonCard v-for="entry in pokemon" :key="entry.id" :pokemon="entry" />
+      <PokemonCard v-for="entry in pokemon" :key="entry.id" :pokemon="entry" compact />
     </section>
     <p v-else-if="!isPageLoading" class="status">{{ t('pokedex.empty') }}</p>
 

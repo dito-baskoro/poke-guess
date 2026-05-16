@@ -57,4 +57,45 @@ describe('PokemonCard', () => {
     })
     expect(getByText('35')).toBeInTheDocument()
   })
+
+  it('formats special attack as sp. attack', () => {
+    render(PokemonCard, {
+      props: {
+        pokemon: {
+          id: 59,
+          name: 'arcanine',
+          displayName: 'Arcanine',
+          imageUrl: 'https://example.com/arcanine.png',
+          types: ['fire'],
+          height: 19,
+          weight: 1550,
+          abilities: ['intimidate'],
+          stats: [{ name: 'special-attack', value: 100 }],
+        },
+      },
+    })
+
+    expect(screen.getByText('Sp. Attack')).toBeInTheDocument()
+  })
+
+  it('marks compact cards for the pokedex variant', () => {
+    const { container } = render(PokemonCard, {
+      props: {
+        compact: true,
+        pokemon: {
+          id: 1,
+          name: 'bulbasaur',
+          displayName: 'Bulbasaur',
+          imageUrl: 'https://example.com/bulbasaur.png',
+          types: ['grass', 'poison'],
+          height: 7,
+          weight: 69,
+          abilities: ['overgrow'],
+          stats: [{ name: 'hp', value: 45 }],
+        },
+      },
+    })
+
+    expect(container.querySelector<HTMLElement>('.pokemon-card')).toHaveClass('is-compact')
+  })
 })
