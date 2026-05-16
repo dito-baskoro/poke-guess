@@ -7,6 +7,7 @@ const { locale, t } = useI18n()
 
 <template>
   <div class="app-shell">
+    <div class="pokeball-decoration" aria-hidden="true"></div>
     <header class="site-header">
       <RouterLink to="/" class="brand">PokéGuess</RouterLink>
       <nav>

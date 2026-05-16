@@ -17,11 +17,11 @@ const { t } = useI18n()
 <template>
   <nav class="pagination" aria-label="Pagination">
     <button :disabled="currentPage === 1" @click="$emit('previous')">
-      {{ t('pagination.previous') }}
+      ← {{ t('pagination.previous') }}
     </button>
     <span>{{ t('pagination.pageOf', { current: currentPage, total: totalPages }) }}</span>
     <button :disabled="currentPage === totalPages" @click="$emit('next')">
-      {{ t('pagination.next') }}
+      {{ t('pagination.next') }} →
     </button>
   </nav>
 </template>

@@ -10,6 +10,7 @@ const messages = {
       language: 'Language',
     },
     home: {
+      eyebrow: "Gotta Catch 'Em All",
       title: 'Explore the Pokémon world.',
       intro: 'Browse a card-style Pokédex or test yourself in an endless silhouette challenge.',
       pokedexDescription: 'Browse richly detailed cards for every supported generation.',
@@ -67,6 +68,7 @@ const messages = {
       language: 'Bahasa',
     },
     home: {
+      eyebrow: 'Tangkap Semuanya',
       title: 'Yuk jelajahi dunia Pokémon.',
       intro: 'Lihat-lihat Pokédex bergaya kartu atau uji kemampuanmu di tantangan siluet tanpa akhir.',
       pokedexDescription: 'Lihat kartu lengkap dari tiap generasi yang tersedia.',

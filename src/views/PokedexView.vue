@@ -166,7 +166,16 @@ watch(generation, async () => {
       </div>
     </section>
 
-    <section v-if="pokemon.length > 0" class="card-grid" :class="{ 'is-loading': isPageLoading }">
+    <section v-if="isPageLoading" class="card-grid skeleton-grid" aria-hidden="true">
+      <article v-for="index in pageSize" :key="index" class="pokemon-card skeleton-card">
+        <span class="skeleton-line skeleton-line-short"></span>
+        <span class="skeleton-line"></span>
+        <span class="skeleton-artwork"></span>
+        <span class="skeleton-line skeleton-line-short"></span>
+      </article>
+    </section>
+
+    <section v-else-if="pokemon.length > 0" class="card-grid">
       <PokemonCard v-for="entry in pokemon" :key="entry.id" :pokemon="entry" />
     </section>
     <p v-else-if="!isPageLoading" class="status">{{ t('pokedex.empty') }}</p>

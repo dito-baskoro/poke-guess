@@ -11,7 +11,7 @@ function formatStatName(name: string): string {
 </script>
 
 <template>
-  <article class="pokemon-card">
+  <article class="pokemon-card" :data-primary-type="pokemon.types[0]">
     <header class="card-header">
       <span>#{{ String(pokemon.id).padStart(3, '0') }}</span>
       <h2>{{ pokemon.displayName }}</h2>
@@ -23,7 +23,9 @@ function formatStatName(name: string): string {
     </div>
 
     <div class="type-row">
-      <span v-for="type in pokemon.types" :key="type" class="type-pill">{{ type }}</span>
+      <span v-for="type in pokemon.types" :key="type" class="type-pill" :data-type="type">
+        {{ type }}
+      </span>
     </div>
 
     <dl class="facts">
@@ -47,6 +49,9 @@ function formatStatName(name: string): string {
       <ul>
         <li v-for="stat in pokemon.stats" :key="stat.name">
           <span>{{ formatStatName(stat.name) }}</span>
+          <span class="stat-bar" aria-hidden="true">
+            <span class="stat-bar-fill" :style="{ width: `${(stat.value / 255) * 100}%` }"></span>
+          </span>
           <strong>{{ stat.value }}</strong>
         </li>
       </ul>

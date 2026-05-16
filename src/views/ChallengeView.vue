@@ -109,7 +109,10 @@ watch(generation, async () => {
 
   <section v-else-if="pokemon && state" class="challenge-card">
     <div class="scoreboard">
-      <span>{{ t('challenge.streak') }} <strong>{{ state.streak }}</strong></span>
+      <span class="streak-counter" :class="{ 'on-fire': state.streak >= 3 }">
+        {{ t('challenge.streak') }} <strong>{{ state.streak }}</strong>
+        <span v-if="state.streak >= 3" aria-hidden="true">🔥</span>
+      </span>
       <span>{{ t('challenge.correctCount') }} <strong>{{ state.totalCorrect }}</strong></span>
       <span>{{ t('challenge.attempts') }} <strong>{{ state.totalAttempted }}</strong></span>
     </div>
@@ -119,7 +122,7 @@ watch(generation, async () => {
       <div v-else class="artwork-fallback">No artwork</div>
     </div>
 
-    <p class="feedback">{{ feedback }}</p>
+    <p class="feedback" :class="state.result">{{ feedback }}</p>
 
     <form class="guess-form" @submit.prevent="handleSubmit">
       <input v-model="guess" type="text" :placeholder="t('challenge.inputPlaceholder')" />
