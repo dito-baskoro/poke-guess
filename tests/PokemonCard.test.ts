@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/vue'
+import { render, screen, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import PokemonCard from '../src/components/PokemonCard.vue'
 
@@ -48,10 +48,10 @@ describe('PokemonCard', () => {
     })
 
     expect(container.querySelector('.pokemon-card')).toHaveAttribute('data-primary-type', 'electric')
-    expect(screen.getByText('electric')).toHaveAttribute('data-type', 'electric')
+    expect(within(container).getByText('electric')).toHaveAttribute('data-type', 'electric')
     expect(container.querySelector('.stat-bar-fill')).toHaveStyle({
       width: `${(35 / 255) * 100}%`,
     })
-    expect(screen.getByText('35')).toBeInTheDocument()
+    expect(within(container).getByText('35')).toBeInTheDocument()
   })
 })

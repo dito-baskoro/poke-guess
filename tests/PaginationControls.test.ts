@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import PaginationControls from '../src/components/PaginationControls.vue'
 
@@ -18,14 +18,14 @@ describe('PaginationControls', () => {
   })
 
   it('renders directional arrow labels', () => {
-    render(PaginationControls, {
+    const { container } = render(PaginationControls, {
       props: {
         currentPage: 2,
         totalPages: 3,
       },
     })
 
-    expect(screen.getByRole('button', { name: /← previous/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /next →/i })).toBeInTheDocument()
+    expect(within(container).getByRole('button', { name: /← previous/i })).toBeInTheDocument()
+    expect(within(container).getByRole('button', { name: /next →/i })).toBeInTheDocument()
   })
 })
