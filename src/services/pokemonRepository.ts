@@ -10,7 +10,7 @@ interface GenerationResponse {
 }
 
 const API_BASE = 'https://pokeapi.co/api/v2'
-export const SUPPORTED_GENERATIONS = [1, 2] as const
+export const SUPPORTED_GENERATIONS = [1, 2, 3] as const
 
 function extractIdFromUrl(url: string): number {
   const match = url.match(/\/(\d+)\/?$/)

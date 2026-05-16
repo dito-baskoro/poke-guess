@@ -10,6 +10,7 @@ import {
   type PokemonCatalogEntry,
 } from '../domain/pokemon'
 import { pokemonRepository } from '../services/pokemonRepository'
+import { soundEnabled, toggleSound } from '../composables/useSoundPreference'
 import { useI18n } from '../i18n'
 
 const pageSize = 20
@@ -25,6 +26,7 @@ const isPageLoading = ref(false)
 const error = ref<string | null>(null)
 const openCardId = ref<number | null>(null)
 const { t } = useI18n()
+let generationLoadToken = 0
 
 function toggleCard(id: number) {
   openCardId.value = openCardId.value === id ? null : id
@@ -58,6 +60,7 @@ async function loadPage() {
   pokemon.value = results
     .filter((result): result is PromiseFulfilledResult<Pokemon> => result.status === 'fulfilled')
     .map((result) => result.value)
+  generationPokemon.value = mergePokemon(generationPokemon.value, pokemon.value)
   if (results.some((result) => result.status === 'rejected')) {
     error.value =
       pokemon.value.length > 0
@@ -67,19 +70,52 @@ async function loadPage() {
   isPageLoading.value = false
 }
 
-async function initialize() {
+function mergePokemon(current: Pokemon[], incoming: Pokemon[]): Pokemon[] {
+  const byId = new Map(current.map((entry) => [entry.id, entry]))
+  incoming.forEach((entry) => byId.set(entry.id, entry))
+  return [...byId.values()].sort((left, right) => left.id - right.id)
+}
+
+async function hydrateRemainingPokemon(
+  entries: PokemonCatalogEntry[],
+  loadedIds: number[],
+  token: number,
+) {
+  const loadedIdSet = new Set(loadedIds)
+  const remainingEntries = entries.filter((entry) => !loadedIdSet.has(entry.id))
+
+  await Promise.allSettled(
+    remainingEntries.map(async (entry) => {
+      const detailedPokemon = await pokemonRepository.getPokemon(entry.id)
+      if (token !== generationLoadToken) return
+      generationPokemon.value = mergePokemon(generationPokemon.value, [detailedPokemon])
+    }),
+  )
+}
+
+async function loadGeneration(initialErrorKey: 'pokedex.initialError' | 'pokedex.generationError') {
+  const token = ++generationLoadToken
   isInitialLoading.value = true
   try {
     catalog.value = await pokemonRepository.getGenerationCatalog(Number(generation.value))
-    generationPokemon.value = await Promise.all(
-      catalog.value.map((entry) => pokemonRepository.getPokemon(entry.id)),
-    )
+    generationPokemon.value = []
     await loadPage()
+    void hydrateRemainingPokemon(
+      catalog.value,
+      generationPokemon.value.map((entry) => entry.id),
+      token,
+    )
   } catch {
-    error.value = t('pokedex.initialError')
+    error.value = t(initialErrorKey)
   } finally {
-    isInitialLoading.value = false
+    if (token === generationLoadToken) {
+      isInitialLoading.value = false
+    }
   }
+}
+
+async function initialize() {
+  await loadGeneration('pokedex.initialError')
 }
 
 function previousPage() {
@@ -112,21 +148,10 @@ watch(selectedType, () => {
   currentPage.value = 1
 })
 watch(generation, async () => {
-  isInitialLoading.value = true
   searchQuery.value = ''
   selectedType.value = 'all'
   currentPage.value = 1
-  try {
-    catalog.value = await pokemonRepository.getGenerationCatalog(Number(generation.value))
-    generationPokemon.value = await Promise.all(
-      catalog.value.map((entry) => pokemonRepository.getPokemon(entry.id)),
-    )
-    await loadPage()
-  } catch {
-    error.value = t('pokedex.generationError')
-  } finally {
-    isInitialLoading.value = false
-  }
+  await loadGeneration('pokedex.generationError')
 })
 </script>
 
@@ -154,6 +179,7 @@ watch(generation, async () => {
           <select v-model="generation" class="generation-select" aria-label="Generation">
             <option value="1">{{ t('common.generationI') }}</option>
             <option value="2">{{ t('common.generationII') }}</option>
+            <option value="3">{{ t('common.generationIII') }}</option>
           </select>
         </label>
 
@@ -213,5 +239,14 @@ watch(generation, async () => {
       @previous="previousPage"
       @next="nextPage"
     />
+
+    <button
+      class="sound-toggle"
+      type="button"
+      :aria-pressed="soundEnabled"
+      @click="toggleSound"
+    >
+      {{ soundEnabled ? t('pokedex.soundOn') : t('pokedex.soundOff') }}
+    </button>
   </template>
 </template>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+import { soundEnabled } from '../composables/useSoundPreference'
 import type { Pokemon } from '../domain/pokemon'
 
-defineProps<{
+const props = defineProps<{
   pokemon: Pokemon
   compact?: boolean
   open?: boolean
@@ -16,6 +18,29 @@ function formatStatName(name: string): string {
   if (name === 'special-defense') return 'SP. DEF'
   return name.replace('-', ' ').toUpperCase()
 }
+
+const hasPlayedCry = ref(false)
+
+watch(
+  () => props.open,
+  (open, wasOpen) => {
+    if (
+      !props.compact ||
+      !open ||
+      wasOpen ||
+      hasPlayedCry.value ||
+      !soundEnabled.value ||
+      !props.pokemon.cryUrl
+    ) {
+      return
+    }
+
+    hasPlayedCry.value = true
+    const cry = new Audio(props.pokemon.cryUrl)
+    cry.volume = 0.5
+    void cry.play()
+  },
+)
 </script>
 
 <template>
@@ -32,7 +57,13 @@ function formatStatName(name: string): string {
 
     <div class="artwork-frame">
       <img v-if="pokemon.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
-      <div v-else class="artwork-fallback">No artwork</div>
+      <div v-else class="pokeball-loader" aria-hidden="true">
+        <div class="pokeball">
+          <div class="pokeball-top"></div>
+          <div class="pokeball-center"></div>
+          <div class="pokeball-bottom"></div>
+        </div>
+      </div>
     </div>
 
     <div class="type-row">

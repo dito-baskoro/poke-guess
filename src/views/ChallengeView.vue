@@ -7,6 +7,7 @@ import {
   startGame,
   recordCorrect,
   recordWrong,
+  completeGame,
   resetToSetup,
   type GameSession,
 } from '../domain/gameSession'
@@ -29,6 +30,11 @@ const selectedDifficulty = ref<'casual' | 'challenging'>('casual')
 const { t } = useI18n()
 
 const allSelected = computed(() => selectedGenerations.value.length === SUPPORTED_GENERATIONS.length)
+const generationLabels = computed(() => ({
+  1: t('common.generationI'),
+  2: t('common.generationII'),
+  3: t('common.generationIII'),
+}))
 
 function toggleSelectAll() {
   if (allSelected.value) {
@@ -59,7 +65,7 @@ async function handleStart() {
   try {
     const config = { generations: [...selectedGenerations.value], difficulty: selectedDifficulty.value }
     ids.value = (await pokemonRepository.getMultiGenerationCatalog(config.generations)).map((e) => e.id)
-    session.value = startGame(session.value, config)
+    session.value = startGame(session.value, config, ids.value)
     await loadRound(null)
   } catch {
     error.value = t('challenge.initialError')
@@ -71,7 +77,7 @@ async function loadRound(previousId: number | null) {
   isLoading.value = true
   stopTimer()
   try {
-    const nextId = pickNextPokemonId(ids.value, previousId)
+    const nextId = pickNextPokemonId(session.value.remainingPokemonIds, previousId)
     pokemon.value = await pokemonRepository.getPokemon(nextId)
     guess.value = ''
     if (isChallenging.value) startTimer()
@@ -88,7 +94,7 @@ function handleGuess() {
 
   if (isCorrectPokemonGuess(guess.value, pokemon.value.name)) {
     stopTimer()
-    session.value = recordCorrect(session.value)
+    session.value = recordCorrect(session.value, pokemon.value.id)
     isRevealed.value = true
   } else {
     stopTimer()
@@ -100,8 +106,23 @@ function handleGuess() {
   }
 }
 
+function handleSkip() {
+  if (!pokemon.value || isLoading.value || isRevealed.value) return
+
+  stopTimer()
+  session.value = recordWrong(session.value)
+  if (session.value.phase === 'playing') {
+    isRevealed.value = true
+  }
+}
+
 function handleContinue() {
   isRevealed.value = false
+  if (!session.value.remainingPokemonIds.length) {
+    session.value = completeGame(session.value)
+    return
+  }
+
   loadRound(pokemon.value?.id ?? null)
 }
 
@@ -127,7 +148,7 @@ function handleTryAgain() {
       </label>
       <label v-for="gen in SUPPORTED_GENERATIONS" :key="gen" class="checkbox-label">
         <input type="checkbox" :value="gen" v-model="selectedGenerations" />
-        {{ gen === 1 ? t('common.generationI') : t('common.generationII') }}
+        {{ generationLabels[gen] }}
       </label>
     </fieldset>
 
@@ -183,7 +204,13 @@ function handleTryAgain() {
 
     <div class="silhouette-frame" :class="{ revealed: isRevealed }">
       <img v-if="pokemon?.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
-      <div v-else class="artwork-fallback">No artwork</div>
+      <div v-else class="pokeball-loader" aria-hidden="true">
+        <div class="pokeball">
+          <div class="pokeball-top"></div>
+          <div class="pokeball-center"></div>
+          <div class="pokeball-bottom"></div>
+        </div>
+      </div>
     </div>
 
     <div v-if="isRevealed && pokemon" class="correct-reveal">
@@ -198,9 +225,29 @@ function handleTryAgain() {
 
       <form class="guess-form" @submit.prevent="handleGuess">
         <input v-model="guess" type="text" :placeholder="t('challenge.inputPlaceholder')" :disabled="isLoading" />
-        <button type="submit" :disabled="isLoading">{{ t('challenge.guess') }}</button>
+        <div class="guess-actions">
+          <button class="skip-button" type="button" :disabled="isLoading" @click="handleSkip">
+            {{ t('challenge.reveal') }}
+          </button>
+          <button class="guess-button" type="submit" :disabled="isLoading">
+            {{ t('challenge.guess') }}
+          </button>
+        </div>
       </form>
     </template>
+  </section>
+
+  <!-- COMPLETED PHASE -->
+  <section v-else-if="session.phase === 'completed'" class="game-over is-completed">
+    <h2>{{ t('challenge.completed') }}</h2>
+    <p>{{ t('challenge.completedDescription') }}</p>
+
+    <div class="final-score">
+      <p>{{ t('challenge.finalScore', { score: session.score }) }}</p>
+      <p>{{ t('challenge.bestStreak', { streak: session.bestStreak }) }}</p>
+    </div>
+
+    <button class="start-button" @click="handleTryAgain">{{ t('challenge.tryAgain') }}</button>
   </section>
 
   <!-- GAME OVER PHASE -->

@@ -627,6 +627,15 @@ input:not([type="checkbox"]):not([type="radio"]) {
   margin-bottom: var(--space-4);
 }
 
+.game-over.is-completed h2 {
+  color: var(--color-success);
+  margin-bottom: var(--space-2);
+}
+
+.game-over.is-completed > p {
+  margin-bottom: var(--space-4);
+}
+
 .game-over-reveal {
   margin-bottom: var(--space-4);
 }
@@ -738,13 +747,40 @@ input:not([type="checkbox"]):not([type="radio"]) {
 }
 
 .guess-form {
+  display: grid;
+  gap: var(--space-3);
   margin-bottom: var(--space-3);
+}
+
+.guess-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.guess-actions button {
+  flex: 1;
+}
+
+.guess-button {
+  background: linear-gradient(135deg, #18834d, #28b86b);
+  box-shadow: 0 14px 32px rgba(40, 184, 107, 0.3);
+}
+
+.guess-button:hover:not(:disabled) {
+  box-shadow: 0 16px 38px rgba(40, 184, 107, 0.42);
 }
 
 .toolbar-pagination {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+.sound-toggle {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 2;
 }
 
 .status.inline {

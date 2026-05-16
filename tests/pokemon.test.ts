@@ -26,6 +26,9 @@ describe('pokemon domain utilities', () => {
           },
         },
       },
+      cries: {
+        latest: 'https://example.com/pikachu.ogg',
+      },
     })
 
     expect(pokemon).toEqual({
@@ -33,6 +36,7 @@ describe('pokemon domain utilities', () => {
       name: 'pikachu',
       displayName: 'Pikachu',
       imageUrl: 'https://example.com/pikachu.png',
+      cryUrl: 'https://example.com/pikachu.ogg',
       height: 4,
       weight: 60,
       abilities: ['static'],
