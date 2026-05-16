@@ -49,8 +49,12 @@ export class PokemonRepository {
   }
 
   async getAllSupportedCatalog(): Promise<PokemonCatalogEntry[]> {
+    return this.getMultiGenerationCatalog([...SUPPORTED_GENERATIONS])
+  }
+
+  async getMultiGenerationCatalog(generations: number[]): Promise<PokemonCatalogEntry[]> {
     const catalogs = await Promise.all(
-      SUPPORTED_GENERATIONS.map((generation) => this.getGenerationCatalog(generation)),
+      generations.map((generation) => this.getGenerationCatalog(generation)),
     )
     return catalogs.flat().sort((left, right) => left.id - right.id)
   }

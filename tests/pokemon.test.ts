@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { normalizePokemon, paginatePokemon, normalizeGuess } from '../src/domain/pokemon'
+import {
+  isCorrectPokemonGuess,
+  normalizePokemon,
+  paginatePokemon,
+  normalizeGuess,
+} from '../src/domain/pokemon'
 
 describe('pokemon domain utilities', () => {
   it('normalizes a PokeAPI pokemon response into the app model', () => {
@@ -47,5 +52,9 @@ describe('pokemon domain utilities', () => {
 
   it('normalizes guesses for case, whitespace, and punctuation', () => {
     expect(normalizeGuess(' Mr. Mime ')).toBe('mrmime')
+  })
+
+  it('compares pokemon names and answers after trimming whitespace', () => {
+    expect(isCorrectPokemonGuess('  Pikachu  ', ' pikachu ')).toBe(true)
   })
 })

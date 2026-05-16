@@ -14,4 +14,13 @@ describe('i18n messages', () => {
     expect(getMessage('en', 'home.eyebrow')).toBe("Gotta Catch 'Em All")
     expect(getMessage('id', 'home.eyebrow')).toBe('Tangkap Semuanya')
   })
+
+  it('returns localized pokedex description copy', () => {
+    expect(getMessage('en', 'pokedex.description')).toBe(
+      "Search for a pokemon by name or using it's type.",
+    )
+    expect(getMessage('id', 'pokedex.description')).toBe(
+      'Cari Pokemon berdasarkan nama atau tipenya.',
+    )
+  })
 })

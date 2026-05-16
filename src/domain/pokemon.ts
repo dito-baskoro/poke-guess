@@ -70,6 +70,10 @@ export function normalizeGuess(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]/g, '')
 }
 
+export function isCorrectPokemonGuess(guess: string, answer: string): boolean {
+  return normalizeGuess(guess) === normalizeGuess(answer)
+}
+
 export function filterCatalog(
   catalog: PokemonCatalogEntry[],
   query: string,
