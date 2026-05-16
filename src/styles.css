@@ -404,13 +404,14 @@ h1 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-3);
-  text-align: center;
+  text-align: left;
 }
 
 .facts div {
   display: grid;
   gap: var(--space-1);
-  justify-items: center;
+  justify-items: start;
+  text-align: left;
 }
 
 .facts dt,
@@ -592,7 +593,44 @@ input {
 
 .pokemon-card.is-compact .card-details {
   display: grid;
-  gap: 0;
+  gap: var(--space-3);
+}
+
+.pokemon-card.is-compact {
+  padding: var(--space-3);
+}
+
+.pokemon-card.is-compact .card-header {
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pokemon-card.is-compact .artwork-frame {
+  min-height: 124px;
+  margin: var(--space-2) 0;
+}
+
+.pokemon-card.is-compact .artwork-frame img {
+  max-width: 124px;
+  height: 124px;
+}
+
+.pokemon-card.is-compact .type-row {
+  gap: var(--space-1);
+}
+
+.pokemon-card.is-compact .facts {
+  gap: var(--space-2);
+}
+
+.pokemon-card.is-compact .abilities,
+.pokemon-card.is-compact .stats {
+  margin: 0;
+}
+
+.pokemon-card.is-compact .abilities h3,
+.pokemon-card.is-compact .stats h3 {
+  margin: 0 0 var(--space-2);
 }
 
 @media (hover: hover) and (pointer: fine) {

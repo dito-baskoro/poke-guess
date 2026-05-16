@@ -7,7 +7,8 @@ defineProps<{
 }>()
 
 function formatStatName(name: string): string {
-  if (name === 'special-attack') return 'Sp. Attack'
+  if (name === 'special-attack') return 'SP. ATK'
+  if (name === 'special-defense') return 'SP. DEF'
   return name.replace('-', ' ').toUpperCase()
 }
 </script>

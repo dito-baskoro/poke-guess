@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "author": "ditoabaskoro@gmail.com",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",

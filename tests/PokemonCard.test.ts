@@ -58,7 +58,7 @@ describe('PokemonCard', () => {
     expect(getByText('35')).toBeInTheDocument()
   })
 
-  it('formats special attack as sp. attack', () => {
+  it('formats special attack as SP. ATK', () => {
     render(PokemonCard, {
       props: {
         pokemon: {
@@ -75,7 +75,27 @@ describe('PokemonCard', () => {
       },
     })
 
-    expect(screen.getByText('Sp. Attack')).toBeInTheDocument()
+    expect(screen.getByText('SP. ATK')).toBeInTheDocument()
+  })
+
+  it('formats special defense as SP. DEF', () => {
+    render(PokemonCard, {
+      props: {
+        pokemon: {
+          id: 65,
+          name: 'alakazam',
+          displayName: 'Alakazam',
+          imageUrl: 'https://example.com/alakazam.png',
+          types: ['psychic'],
+          height: 15,
+          weight: 480,
+          abilities: ['synchronize'],
+          stats: [{ name: 'special-defense', value: 95 }],
+        },
+      },
+    })
+
+    expect(screen.getByText('SP. DEF')).toBeInTheDocument()
   })
 
   it('marks compact cards for the pokedex variant', () => {
