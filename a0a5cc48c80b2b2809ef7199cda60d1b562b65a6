@@ -1,0 +1,34 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "a0a5cc48c80b2b2809ef7199cda60d1b562b65a6",
+  "prompts": {
+    "600726a3216c17d6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3037-9aed-7333-a977-17c7d79ab417",
+        "model": "gpt-5.5"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "c99808bd725b4d39": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3014-bd50-7f71-8aa5-c1768237e260",
+        "model": "gpt-5.5"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 55,
+      "overriden_lines": 0
+    }
+  }
+}
