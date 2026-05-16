@@ -13,6 +13,9 @@ export interface ApiPokemon {
       }
     }
   }
+  cries?: {
+    latest?: string | null
+  }
 }
 
 export interface PokemonStat {
@@ -25,6 +28,7 @@ export interface Pokemon {
   name: string
   displayName: string
   imageUrl: string | null
+  cryUrl: string | null
   height: number
   weight: number
   abilities: string[]
@@ -50,6 +54,7 @@ export function normalizePokemon(input: ApiPokemon): Pokemon {
     name: input.name,
     displayName: toDisplayName(input.name),
     imageUrl: input.sprites.other?.['official-artwork']?.front_default ?? null,
+    cryUrl: input.cries?.latest ?? null,
     height: input.height,
     weight: input.weight,
     abilities: input.abilities.map((entry) => entry.ability.name),

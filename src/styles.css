@@ -776,6 +776,13 @@ input:not([type="checkbox"]):not([type="radio"]) {
   gap: var(--space-3);
 }
 
+.sound-toggle {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 2;
+}
+
 .status.inline {
   margin: 0;
 }

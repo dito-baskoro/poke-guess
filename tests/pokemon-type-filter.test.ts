@@ -27,6 +27,7 @@ function createPokemon(id: number, types: string[]): Pokemon {
     name: `pokemon-${id}`,
     displayName: `Pokemon ${id}`,
     imageUrl: null,
+    cryUrl: null,
     height: 1,
     weight: 1,
     abilities: [],

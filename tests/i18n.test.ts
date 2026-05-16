@@ -36,8 +36,19 @@ describe('i18n messages', () => {
     expect(getMessage('id', 'challenge.reveal')).toBe('Lewati')
   })
 
-  it('returns localized generation III labels', () => {
-    expect(getMessage('en', 'common.generationIII')).toBe('Generation III')
-    expect(getMessage('id', 'common.generationIII')).toBe('Generasi III')
+  it('returns localized generation labels with regions', () => {
+    expect(getMessage('en', 'common.generationI')).toBe('Generation I (Kanto)')
+    expect(getMessage('en', 'common.generationII')).toBe('Generation II (Johto)')
+    expect(getMessage('en', 'common.generationIII')).toBe('Generation III (Hoenn)')
+    expect(getMessage('id', 'common.generationI')).toBe('Generasi I (Kanto)')
+    expect(getMessage('id', 'common.generationII')).toBe('Generasi II (Johto)')
+    expect(getMessage('id', 'common.generationIII')).toBe('Generasi III (Hoenn)')
+  })
+
+  it('returns localized sound toggle copy', () => {
+    expect(getMessage('en', 'pokedex.soundOn')).toBe('Sound on')
+    expect(getMessage('en', 'pokedex.soundOff')).toBe('Sound off')
+    expect(getMessage('id', 'pokedex.soundOn')).toBe('Suara aktif')
+    expect(getMessage('id', 'pokedex.soundOff')).toBe('Suara mati')
   })
 })

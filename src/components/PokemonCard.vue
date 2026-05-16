@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+import { soundEnabled } from '../composables/useSoundPreference'
 import type { Pokemon } from '../domain/pokemon'
 
-defineProps<{
+const props = defineProps<{
   pokemon: Pokemon
   compact?: boolean
   open?: boolean
@@ -16,6 +18,29 @@ function formatStatName(name: string): string {
   if (name === 'special-defense') return 'SP. DEF'
   return name.replace('-', ' ').toUpperCase()
 }
+
+const hasPlayedCry = ref(false)
+
+watch(
+  () => props.open,
+  (open, wasOpen) => {
+    if (
+      !props.compact ||
+      !open ||
+      wasOpen ||
+      hasPlayedCry.value ||
+      !soundEnabled.value ||
+      !props.pokemon.cryUrl
+    ) {
+      return
+    }
+
+    hasPlayedCry.value = true
+    const cry = new Audio(props.pokemon.cryUrl)
+    cry.volume = 0.5
+    void cry.play()
+  },
+)
 </script>
 
 <template>

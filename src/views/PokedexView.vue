@@ -10,6 +10,7 @@ import {
   type PokemonCatalogEntry,
 } from '../domain/pokemon'
 import { pokemonRepository } from '../services/pokemonRepository'
+import { soundEnabled, toggleSound } from '../composables/useSoundPreference'
 import { useI18n } from '../i18n'
 
 const pageSize = 20
@@ -238,5 +239,14 @@ watch(generation, async () => {
       @previous="previousPage"
       @next="nextPage"
     />
+
+    <button
+      class="sound-toggle"
+      type="button"
+      :aria-pressed="soundEnabled"
+      @click="toggleSound"
+    >
+      {{ soundEnabled ? t('pokedex.soundOn') : t('pokedex.soundOff') }}
+    </button>
   </template>
 </template>
