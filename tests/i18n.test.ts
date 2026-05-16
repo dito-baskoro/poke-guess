@@ -9,4 +9,9 @@ describe('i18n messages', () => {
   it('returns indonesian messages', () => {
     expect(getMessage('id', 'nav.challenge')).toBe('Tantangan')
   })
+
+  it('returns localized eyebrow copy', () => {
+    expect(getMessage('en', 'home.eyebrow')).toBe("Gotta Catch 'Em All")
+    expect(getMessage('id', 'home.eyebrow')).toBe('Tangkap Semuanya')
+  })
 })
