@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "0ad6525ea636b56ac8546aa8436a36c20cb789cb",
+  "prompts": {
+    "c99808bd725b4d39": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3014-bd50-7f71-8aa5-c1768237e260",
+        "model": "gpt-5.5"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 55,
+      "overriden_lines": 0
+    }
+  }
+}
