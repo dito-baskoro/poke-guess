@@ -1,0 +1,33 @@
+tests/PokedexView.test.ts
+  d54547901a51a9f3 43
+src/components/PokemonCard.vue
+  d54547901a51a9f3 3,27-36
+tests/PokemonCard.test.ts
+  d54547901a51a9f3 4,9,186,189-219
+tests/i18n.test.ts
+  d54547901a51a9f3 47-52
+src/i18n.ts
+  d54547901a51a9f3 36-37,114-115
+src/views/PokedexView.vue
+  d54547901a51a9f3 13,242-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "838e1146f33e3c21ebc1c120a823a45167bc7559",
+  "prompts": {
+    "d54547901a51a9f3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e311c-42fd-7953-9d2e-f94bee560e03",
+        "model": "gpt-5.5"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 214,
+      "total_deletions": 83,
+      "accepted_lines": 184,
+      "overriden_lines": 0
+    }
+  }
+}
