@@ -10,6 +10,7 @@ import {
 } from '../domain/challengeState'
 import type { Pokemon } from '../domain/pokemon'
 import { pokemonRepository } from '../services/pokemonRepository'
+import { useI18n } from '../i18n'
 
 const ids = ref<number[]>([])
 const generation = ref<'1' | '2' | 'all'>('1')
@@ -18,13 +19,16 @@ const state = ref<ChallengeState | null>(null)
 const guess = ref('')
 const isLoading = ref(true)
 const error = ref<string | null>(null)
+const { t } = useI18n()
 
 const feedback = computed(() => {
   if (!state.value) return ''
-  if (state.value.result === 'correct') return 'Correct!'
-  if (state.value.result === 'incorrect') return 'Not quite — try again.'
-  if (state.value.result === 'revealed') return `It was ${pokemon.value?.displayName}.`
-  return 'Who’s that Pokémon?'
+  if (state.value.result === 'correct') return t('challenge.correct')
+  if (state.value.result === 'incorrect') return t('challenge.incorrect')
+  if (state.value.result === 'revealed') {
+    return t('challenge.guessedName', { name: pokemon.value?.displayName ?? '' })
+  }
+  return t('challenge.prompt')
 })
 
 async function loadRound(previousId: number | null = null) {
@@ -36,7 +40,7 @@ async function loadRound(previousId: number | null = null) {
     state.value = state.value ? beginNextRound(state.value, nextId) : createChallengeState(nextId)
     guess.value = ''
   } catch {
-    error.value = 'Unable to load a challenge round right now.'
+    error.value = t('challenge.roundError')
   } finally {
     isLoading.value = false
   }
@@ -47,7 +51,7 @@ async function initialize() {
     ids.value = await loadIdsForGeneration(generation.value)
     await loadRound()
   } catch {
-    error.value = 'Unable to load the challenge right now.'
+    error.value = t('challenge.initialError')
     isLoading.value = false
   }
 }
@@ -83,7 +87,7 @@ watch(generation, async () => {
     state.value = null
     await loadRound()
   } catch {
-    error.value = 'Unable to load the selected challenge generation right now.'
+    error.value = t('challenge.generationError')
     isLoading.value = false
   }
 })
@@ -92,22 +96,22 @@ watch(generation, async () => {
 <template>
   <section class="page-header">
     <select v-model="generation" class="generation-select" aria-label="Challenge generation">
-      <option value="1">Generation I</option>
-      <option value="2">Generation II</option>
-      <option value="all">All Generations</option>
+      <option value="1">{{ t('common.generationI') }}</option>
+      <option value="2">{{ t('common.generationII') }}</option>
+      <option value="all">{{ t('common.allGenerations') }}</option>
     </select>
-    <h1>Who’s That Pokémon?</h1>
-    <p>Type the name, keep the streak alive, and move through endless rounds.</p>
+    <h1>{{ t('challenge.title') }}</h1>
+    <p>{{ t('challenge.description') }}</p>
   </section>
 
   <p v-if="error" class="status error">{{ error }}</p>
-  <p v-else-if="isLoading" class="status">Loading challenge...</p>
+  <p v-else-if="isLoading" class="status">{{ t('challenge.loading') }}</p>
 
   <section v-else-if="pokemon && state" class="challenge-card">
     <div class="scoreboard">
-      <span>Streak <strong>{{ state.streak }}</strong></span>
-      <span>Correct <strong>{{ state.totalCorrect }}</strong></span>
-      <span>Attempts <strong>{{ state.totalAttempted }}</strong></span>
+      <span>{{ t('challenge.streak') }} <strong>{{ state.streak }}</strong></span>
+      <span>{{ t('challenge.correctCount') }} <strong>{{ state.totalCorrect }}</strong></span>
+      <span>{{ t('challenge.attempts') }} <strong>{{ state.totalAttempted }}</strong></span>
     </div>
 
     <div class="silhouette-frame" :class="{ revealed: state.isRevealed }">
@@ -118,13 +122,17 @@ watch(generation, async () => {
     <p class="feedback">{{ feedback }}</p>
 
     <form class="guess-form" @submit.prevent="handleSubmit">
-      <input v-model="guess" type="text" placeholder="Enter Pokémon name" />
-      <button type="submit" :disabled="state.isRevealed">Guess</button>
+      <input v-model="guess" type="text" :placeholder="t('challenge.inputPlaceholder')" />
+      <button type="submit" :disabled="state.isRevealed">{{ t('challenge.guess') }}</button>
     </form>
 
     <div class="challenge-actions">
-      <button @click="handleReveal" :disabled="state.isRevealed">Reveal / Skip</button>
-      <button @click="handleNext" :disabled="!state.isRevealed">Next Pokémon</button>
+      <button @click="handleReveal" :disabled="state.isRevealed">
+        {{ t('challenge.reveal') }}
+      </button>
+      <button @click="handleNext" :disabled="!state.isRevealed">
+        {{ t('challenge.next') }}
+      </button>
     </div>
   </section>
 </template>

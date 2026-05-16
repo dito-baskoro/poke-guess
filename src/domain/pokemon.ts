@@ -79,3 +79,8 @@ export function filterCatalog(
 
   return catalog.filter((entry) => normalizeGuess(entry.name).includes(normalizedQuery))
 }
+
+export function filterPokemonByType(pokemon: Pokemon[], selectedType: string): Pokemon[] {
+  if (selectedType === 'all') return pokemon
+  return pokemon.filter((entry) => entry.types.includes(selectedType))
+}

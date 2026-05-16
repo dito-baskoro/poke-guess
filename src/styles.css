@@ -2,10 +2,11 @@
   color-scheme: dark;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #fff7e8;
+  color: #fff4f2;
   background:
-    radial-gradient(circle at top left, rgba(255, 218, 112, 0.16), transparent 28%),
-    linear-gradient(180deg, #24160f 0%, #120b08 100%);
+    radial-gradient(circle at top left, rgba(255, 94, 94, 0.24), transparent 30%),
+    radial-gradient(circle at top right, rgba(255, 214, 214, 0.08), transparent 24%),
+    linear-gradient(180deg, #2a090b 0%, #140406 100%);
 }
 
 * {
@@ -32,7 +33,7 @@ a {
 .site-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 18px;
   margin-bottom: 48px;
 }
 
@@ -44,7 +45,32 @@ a {
 .site-header nav {
   display: flex;
   gap: 18px;
-  color: #f9d994;
+  color: #ffd3cf;
+  margin-left: auto;
+}
+
+.language-select select {
+  min-width: 170px;
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, #ff8a80 50%) calc(100% - 18px) 50% / 6px 6px
+      no-repeat,
+    linear-gradient(135deg, #ff8a80 50%, transparent 50%) calc(100% - 12px) 50% / 6px 6px
+      no-repeat,
+    rgba(255, 255, 255, 0.08);
+  padding-right: 40px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .hero,
@@ -53,7 +79,7 @@ a {
 }
 
 .eyebrow {
-  color: #f5c15d;
+  color: #ff6b6b;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -65,7 +91,7 @@ h1 {
 
 .hero-copy,
 .page-header p {
-  color: #dcc8b1;
+  color: #e8c7c3;
 }
 
 .home-grid,
@@ -80,9 +106,9 @@ h1 {
 
 .home-card,
 .challenge-card {
-  border: 1px solid rgba(255, 221, 153, 0.2);
+  border: 1px solid rgba(255, 178, 178, 0.22);
   border-radius: 24px;
-  background: rgba(255, 248, 231, 0.06);
+  background: rgba(255, 236, 236, 0.06);
   padding: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
 }
@@ -93,11 +119,11 @@ h1 {
 }
 
 .pokemon-card {
-  border: 2px solid rgba(255, 214, 120, 0.7);
+  border: 2px solid rgba(255, 128, 128, 0.72);
   border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(255, 246, 218, 0.14), rgba(255, 255, 255, 0.03)),
-    rgba(89, 49, 25, 0.72);
+    linear-gradient(180deg, rgba(255, 228, 228, 0.16), rgba(255, 255, 255, 0.03)),
+    rgba(112, 20, 27, 0.72);
   padding: 16px;
 }
 
@@ -118,7 +144,7 @@ h1 {
   min-height: 180px;
   margin: 16px 0;
   border-radius: 18px;
-  background: rgba(255, 247, 227, 0.08);
+  background: rgba(255, 235, 235, 0.08);
 }
 
 .artwork-frame img,
@@ -138,8 +164,8 @@ h1 {
 .type-pill {
   border-radius: 999px;
   padding: 4px 10px;
-  background: #f5c15d;
-  color: #24160f;
+  background: #ff6b6b;
+  color: #2a090b;
   font-weight: 700;
   text-transform: capitalize;
 }
@@ -153,7 +179,7 @@ h1 {
 .facts dt,
 .abilities h3,
 .stats h3 {
-  color: #f5c15d;
+  color: #ff8a80;
 }
 
 .stats ul {
@@ -185,14 +211,14 @@ button,
 input,
 select {
   border-radius: 999px;
-  border: 1px solid rgba(255, 221, 153, 0.32);
+  border: 1px solid rgba(255, 178, 178, 0.34);
   padding: 10px 16px;
 }
 
 button {
   cursor: pointer;
-  background: #f5c15d;
-  color: #24160f;
+  background: #ef5350;
+  color: #fff7f6;
   font-weight: 700;
 }
 
@@ -203,18 +229,18 @@ button:disabled {
 
 input {
   flex: 1;
-  color: #fff7e8;
+  color: #fff4f2;
   background: rgba(255, 255, 255, 0.08);
 }
 
 select {
-  color: #fff7e8;
+  color: #fff4f2;
   background: rgba(255, 255, 255, 0.08);
 }
 
 .status,
 .feedback {
-  color: #dcc8b1;
+  color: #e8c7c3;
 }
 
 .error {
@@ -239,16 +265,17 @@ select {
 }
 
 .artwork-fallback {
-  color: #dcc8b1;
+  color: #e8c7c3;
 }
 
-.generation-select {
+.generation-select,
+.type-select {
   min-width: 180px;
   appearance: none;
   background:
-    linear-gradient(45deg, transparent 50%, #f5c15d 50%) calc(100% - 18px) 50% / 6px 6px
+    linear-gradient(45deg, transparent 50%, #ff8a80 50%) calc(100% - 18px) 50% / 6px 6px
       no-repeat,
-    linear-gradient(135deg, #f5c15d 50%, transparent 50%) calc(100% - 12px) 50% / 6px 6px
+    linear-gradient(135deg, #ff8a80 50%, transparent 50%) calc(100% - 12px) 50% / 6px 6px
       no-repeat,
     rgba(255, 255, 255, 0.08);
   padding-right: 40px;
@@ -267,8 +294,24 @@ select {
   min-width: min(320px, 100%);
 }
 
-.search-field span {
-  color: #f5c15d;
+.search-field span,
+.type-field span {
+  color: #ff8a80;
+}
+
+.filter-group {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+
+.type-field {
+  display: grid;
+  gap: 8px;
+}
+
+.guess-form {
+  margin-bottom: 12px;
 }
 
 .toolbar-pagination {
@@ -290,11 +333,28 @@ select {
   .site-header,
   .pagination,
   .pokedex-toolbar,
+  .filter-group,
   .toolbar-pagination,
   .scoreboard,
   .challenge-actions,
   .guess-form {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1100px) {
+  .card-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

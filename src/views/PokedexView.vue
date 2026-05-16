@@ -4,30 +4,44 @@ import PokemonCard from '../components/PokemonCard.vue'
 import PaginationControls from '../components/PaginationControls.vue'
 import {
   filterCatalog,
+  filterPokemonByType,
   paginatePokemon,
   type Pokemon,
   type PokemonCatalogEntry,
 } from '../domain/pokemon'
 import { pokemonRepository } from '../services/pokemonRepository'
+import { useI18n } from '../i18n'
 
 const pageSize = 10
 const currentPage = ref(1)
 const generation = ref('1')
 const searchQuery = ref('')
+const selectedType = ref('all')
 const catalog = ref<PokemonCatalogEntry[]>([])
 const pokemon = ref<Pokemon[]>([])
+const generationPokemon = ref<Pokemon[]>([])
 const isInitialLoading = ref(true)
 const isPageLoading = ref(false)
 const error = ref<string | null>(null)
+const { t } = useI18n()
 
 const filteredCatalog = computed(() => filterCatalog(catalog.value, searchQuery.value))
-const totalPages = computed(() => Math.ceil(filteredCatalog.value.length / pageSize))
-const currentIds = computed(() =>
-  paginatePokemon(
-    filteredCatalog.value.map((entry) => entry.id),
-    currentPage.value,
-    pageSize,
+const availableTypes = computed(() =>
+  [...new Set(generationPokemon.value.flatMap((entry) => entry.types))].sort(),
+)
+const filteredPokemon = computed(() =>
+  filterPokemonByType(generationPokemon.value, selectedType.value).filter((entry) =>
+    filteredCatalog.value.some((catalogEntry) => catalogEntry.id === entry.id),
   ),
+)
+const filteredIds = computed(() =>
+  selectedType.value === 'all'
+    ? filteredCatalog.value.map((entry) => entry.id)
+    : filteredPokemon.value.map((entry) => entry.id),
+)
+const totalPages = computed(() => Math.ceil(filteredIds.value.length / pageSize))
+const currentIds = computed(() =>
+  paginatePokemon(filteredIds.value, currentPage.value, pageSize),
 )
 
 async function loadPage() {
@@ -42,8 +56,8 @@ async function loadPage() {
   if (results.some((result) => result.status === 'rejected')) {
     error.value =
       pokemon.value.length > 0
-        ? 'Some Pokémon could not be loaded right now.'
-        : 'Unable to load this Pokédex page right now.'
+        ? t('pokedex.partialError')
+        : t('pokedex.pageError')
   }
   isPageLoading.value = false
 }
@@ -52,9 +66,12 @@ async function initialize() {
   isInitialLoading.value = true
   try {
     catalog.value = await pokemonRepository.getGenerationCatalog(Number(generation.value))
+    generationPokemon.value = await Promise.all(
+      catalog.value.map((entry) => pokemonRepository.getPokemon(entry.id)),
+    )
     await loadPage()
   } catch {
-    error.value = 'Unable to load the Gen 1 Pokédex right now.'
+    error.value = t('pokedex.initialError')
   } finally {
     isInitialLoading.value = false
   }
@@ -78,15 +95,27 @@ watch(searchQuery, () => {
 
   currentPage.value = 1
 })
+watch(selectedType, () => {
+  if (currentPage.value === 1) {
+    void loadPage()
+    return
+  }
+
+  currentPage.value = 1
+})
 watch(generation, async () => {
   isInitialLoading.value = true
   searchQuery.value = ''
+  selectedType.value = 'all'
   currentPage.value = 1
   try {
     catalog.value = await pokemonRepository.getGenerationCatalog(Number(generation.value))
+    generationPokemon.value = await Promise.all(
+      catalog.value.map((entry) => pokemonRepository.getPokemon(entry.id)),
+    )
     await loadPage()
   } catch {
-    error.value = 'Unable to load the selected Pokédex generation right now.'
+    error.value = t('pokedex.generationError')
   } finally {
     isInitialLoading.value = false
   }
@@ -96,25 +125,37 @@ watch(generation, async () => {
 <template>
   <section class="page-header">
     <select v-model="generation" class="generation-select" aria-label="Generation">
-      <option value="1">Generation I</option>
-      <option value="2">Generation II</option>
+      <option value="1">{{ t('common.generationI') }}</option>
+      <option value="2">{{ t('common.generationII') }}</option>
     </select>
-    <h1>Pokédex</h1>
-    <p>Trading-card-inspired summaries by generation.</p>
+    <h1>{{ t('pokedex.title') }}</h1>
+    <p>{{ t('pokedex.description') }}</p>
   </section>
 
   <p v-if="error" class="status error">{{ error }}</p>
-  <p v-if="isInitialLoading" class="status">Loading Pokémon...</p>
+  <p v-if="isInitialLoading" class="status">{{ t('pokedex.loadingPokemon') }}</p>
 
   <template v-if="!isInitialLoading">
     <section class="pokedex-toolbar">
-      <label class="search-field">
-        <span>Search</span>
-        <input v-model="searchQuery" type="search" placeholder="Search Pokémon" />
-      </label>
+      <div class="filter-group">
+        <label class="search-field">
+          <span>{{ t('common.search') }}</span>
+          <input v-model="searchQuery" type="search" :placeholder="t('pokedex.searchPlaceholder')" />
+        </label>
+
+        <label class="type-field">
+          <span>{{ t('common.type') }}</span>
+          <select v-model="selectedType" class="type-select" aria-label="Type">
+            <option value="all">{{ t('common.allTypes') }}</option>
+            <option v-for="type in availableTypes" :key="type" :value="type">
+              {{ type }}
+            </option>
+          </select>
+        </label>
+      </div>
 
       <div class="toolbar-pagination">
-        <span v-if="isPageLoading" class="status inline">Loading page...</span>
+        <span v-if="isPageLoading" class="status inline">{{ t('pokedex.loadingPage') }}</span>
         <PaginationControls
           v-if="totalPages > 0"
           :current-page="currentPage"
@@ -128,7 +169,7 @@ watch(generation, async () => {
     <section v-if="pokemon.length > 0" class="card-grid" :class="{ 'is-loading': isPageLoading }">
       <PokemonCard v-for="entry in pokemon" :key="entry.id" :pokemon="entry" />
     </section>
-    <p v-else-if="!isPageLoading" class="status">No Pokémon found.</p>
+    <p v-else-if="!isPageLoading" class="status">{{ t('pokedex.empty') }}</p>
 
     <PaginationControls
       v-if="totalPages > 0"
