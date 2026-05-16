@@ -1,0 +1,31 @@
+index.html
+  4a1f74fd8ccf7161 1-2
+vite.config.ts
+  4a1f74fd8ccf7161 1-10
+tsconfig.json
+  4a1f74fd8ccf7161 1-16
+package.json
+  4a1f74fd8ccf7161 1-29
+.gitignore
+  4a1f74fd8ccf7161 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "d714e4392048dfb585c586eb66c23a523a2f95db",
+  "prompts": {
+    "4a1f74fd8ccf7161": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2faa-0e1e-7682-a84a-97b611ebf3f4",
+        "model": "gpt-5.5"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 61,
+      "total_deletions": 0,
+      "accepted_lines": 61,
+      "overriden_lines": 0
+    }
+  }
+}
