@@ -1,0 +1,31 @@
+tests/game-session.test.ts
+  d54547901a51a9f3 6,21-25,31,35-40,46,50-57,63-88,90-95,104-109
+tests/i18n.test.ts
+  d54547901a51a9f3 26-37
+src/i18n.ts
+  d54547901a51a9f3 53,70-71,128,145-146
+src/views/ChallengeView.vue
+  d54547901a51a9f3 10,63,75,92,104-113,117-120,202-208,223-230,235-245
+src/domain/gameSession.ts
+  d54547901a51a9f3 2,18,31,39-42,54,58,60-64,71-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "5c32755c703422e30aa59dcb13e23c171cffb68f",
+  "prompts": {
+    "d54547901a51a9f3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e311c-42fd-7953-9d2e-f94bee560e03",
+        "model": "gpt-5.5"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 161,
+      "total_deletions": 34,
+      "accepted_lines": 147,
+      "overriden_lines": 1
+    }
+  }
+}
