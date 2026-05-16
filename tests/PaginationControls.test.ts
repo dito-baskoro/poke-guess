@@ -16,4 +16,16 @@ describe('PaginationControls', () => {
 
     expect(emitted().next).toHaveLength(1)
   })
+
+  it('renders directional arrow labels', () => {
+    const { getByRole } = render(PaginationControls, {
+      props: {
+        currentPage: 2,
+        totalPages: 3,
+      },
+    })
+
+    expect(getByRole('button', { name: /← previous/i })).toBeInTheDocument()
+    expect(getByRole('button', { name: /next →/i })).toBeInTheDocument()
+  })
 })
