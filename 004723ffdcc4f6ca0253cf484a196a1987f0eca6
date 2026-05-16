@@ -1,0 +1,55 @@
+tests/use-timer.test.ts
+  0567b0299e5d68f1 1-69
+tests/game-session.test.ts
+  0567b0299e5d68f1 1-67
+src/domain/pokemon.ts
+  0567b0299e5d68f1 73-76
+src/services/pokemonRepository.ts
+  0567b0299e5d68f1 52-55,57
+src/styles.css
+  d54547901a51a9f3 640-651,723,725-732,1008-1013
+  0567b0299e5d68f1 479,510,516,528-639,652-660
+src/domain/gameSession.ts
+  0567b0299e5d68f1 1-15,18-27,30-32,37,39-45,48-57,77-94
+tests/pokemon.test.ts
+  0567b0299e5d68f1 2-6,56-58
+src/views/ChallengeView.vue
+  d54547901a51a9f3 25,86,92,103-105,184,189-194,196-197,199,202-203
+  0567b0299e5d68f1 4,6-8,10-12,14-15,18-19,22,24,27-28,31,33-37,41-45,50-56,58,60-63,65,70-72,74-77,79-80,85,87-91,93-94,100,108-110,112,117-118,121-152,160-163,166-171,174-176,185,200-201,204,206-212,215-217,219-220
+src/i18n.ts
+  d54547901a51a9f3 20,30,69,93,103,142
+  0567b0299e5d68f1 58-61,64-68,71,131-134,137-141,144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "004723ffdcc4f6ca0253cf484a196a1987f0eca6",
+  "prompts": {
+    "0567b0299e5d68f1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3110-85f9-7f32-b959-4c67980955bc",
+        "model": "gpt-5.4"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 512,
+      "total_deletions": 95,
+      "accepted_lines": 491,
+      "overriden_lines": 8
+    },
+    "d54547901a51a9f3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e311c-42fd-7953-9d2e-f94bee560e03",
+        "model": "gpt-5.4"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 58,
+      "total_deletions": 17,
+      "accepted_lines": 56,
+      "overriden_lines": 0
+    }
+  }
+}
