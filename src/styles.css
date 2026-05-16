@@ -476,7 +476,7 @@ h1 {
 }
 
 button,
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
@@ -507,13 +507,13 @@ button:disabled {
   box-shadow: none;
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select {
   color: var(--color-text);
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-input {
+input:not([type="checkbox"]):not([type="radio"]) {
   flex: 1;
 }
 
@@ -523,6 +523,141 @@ input {
 
 .challenge-card {
   max-width: 640px;
+}
+
+.challenge-setup {
+  max-width: 640px;
+}
+
+.challenge-setup h1 {
+  margin-bottom: var(--space-2);
+}
+
+.challenge-setup > p {
+  margin-bottom: var(--space-5);
+  opacity: 0.8;
+}
+
+.generation-picker,
+.difficulty-picker {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.generation-picker legend,
+.difficulty-picker legend {
+  color: var(--color-cyan);
+  font-weight: 700;
+  padding: 0 var(--space-2);
+}
+
+.checkbox-label,
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.checkbox-label input,
+.radio-label input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--color-cyan);
+  cursor: pointer;
+}
+
+.radio-label span {
+  display: grid;
+  gap: 2px;
+}
+
+.radio-label small {
+  opacity: 0.6;
+  font-size: 0.82rem;
+}
+
+.start-button {
+  width: 100%;
+  padding: var(--space-4);
+  font-size: 1.2rem;
+  margin-top: var(--space-3);
+}
+
+.timer-bar {
+  position: relative;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-4);
+}
+
+.timer-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-success), var(--color-cyan));
+  transition: width 1s linear;
+}
+
+.timer-bar.danger .timer-fill {
+  background: linear-gradient(90deg, var(--color-danger), var(--color-orange));
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+.timer-text {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.game-over {
+  max-width: 640px;
+  text-align: center;
+  animation: card-enter 560ms both;
+}
+
+.game-over h2 {
+  font-size: 2rem;
+  color: var(--color-danger);
+  margin-bottom: var(--space-4);
+}
+
+.game-over-reveal {
+  margin-bottom: var(--space-4);
+}
+
+.game-over-reveal img {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+}
+
+.correct-reveal {
+  text-align: center;
+  animation: card-enter 400ms both;
+}
+
+.correct-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-cyan);
+  margin-bottom: var(--space-4);
+}
+
+.final-score {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  font-size: 1.1rem;
+}
+
+@keyframes timer-pulse {
+  50% { opacity: 0.6; }
 }
 
 .scoreboard {
@@ -535,6 +670,21 @@ input {
     0 0 12px rgba(255, 137, 6, 0.8),
     0 0 28px rgba(229, 49, 112, 0.56);
   animation: pulse-streak 1.2s ease-in-out infinite;
+}
+
+.health-display {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.heart {
+  font-size: 1.3rem;
+  transition: opacity var(--transition-base), transform var(--transition-base);
+}
+
+.heart.lost {
+  opacity: 0;
+  transform: scale(0);
 }
 
 .feedback {
@@ -570,9 +720,16 @@ input {
 }
 
 .filter-group {
-  display: flex;
-  align-items: end;
+  display: grid;
   gap: var(--space-3);
+  grid-template-columns: minmax(0, 320px) minmax(180px, auto);
+  align-items: end;
+}
+
+.generation-field {
+  display: grid;
+  gap: var(--space-2);
+  grid-column: 1 / -1;
 }
 
 .type-field {
@@ -698,6 +855,54 @@ input {
   animation: shimmer 1.35s infinite;
 }
 
+.pokeball-loader {
+  display: grid;
+  place-items: center;
+  min-height: 40vh;
+}
+
+.pokeball {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 4px solid var(--color-text);
+  overflow: hidden;
+  animation: pokeball-bounce 1s ease-in-out infinite;
+}
+
+.pokeball-top {
+  position: absolute;
+  inset: 0 0 50% 0;
+  background: var(--color-danger);
+}
+
+.pokeball-bottom {
+  position: absolute;
+  inset: 50% 0 0 0;
+  background: var(--color-text);
+}
+
+.pokeball-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 4px solid var(--color-text);
+  background: var(--color-bg);
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+@keyframes pokeball-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-12px) rotate(-10deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-6px) rotate(10deg); }
+}
+
 .pokeball-decoration {
   position: fixed;
   right: clamp(-5rem, -3vw, -1rem);
@@ -788,7 +993,6 @@ input {
   .site-header,
   .pagination,
   .pokedex-toolbar,
-  .filter-group,
   .toolbar-pagination,
   .scoreboard,
   .challenge-actions,
@@ -799,6 +1003,14 @@ input {
 
   .site-header nav {
     margin-left: 0;
+  }
+
+  .filter-group {
+    grid-template-columns: 1fr;
+  }
+
+  .generation-field {
+    grid-column: auto;
   }
 
   .card-grid {

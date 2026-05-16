@@ -1,44 +1,80 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { pickNextPokemonId } from '../domain/challenge'
+import { isCorrectPokemonGuess } from '../domain/pokemon'
 import {
-  beginNextRound,
-  createChallengeState,
-  revealCurrentPokemon,
-  submitGuess,
-  type ChallengeState,
-} from '../domain/challengeState'
+  createGameSession,
+  startGame,
+  recordCorrect,
+  recordWrong,
+  resetToSetup,
+  type GameSession,
+} from '../domain/gameSession'
 import type { Pokemon } from '../domain/pokemon'
-import { pokemonRepository } from '../services/pokemonRepository'
+import { pokemonRepository, SUPPORTED_GENERATIONS } from '../services/pokemonRepository'
+import { useTimer } from '../composables/useTimer'
 import { useI18n } from '../i18n'
 
+const TIMER_DURATION = 30
+
 const ids = ref<number[]>([])
-const generation = ref<'1' | '2' | 'all'>('1')
 const pokemon = ref<Pokemon | null>(null)
-const state = ref<ChallengeState | null>(null)
+const session = ref<GameSession>(createGameSession())
 const guess = ref('')
-const isLoading = ref(true)
+const isLoading = ref(false)
+const isRevealed = ref(false)
 const error = ref<string | null>(null)
+const selectedGenerations = ref<number[]>([1])
+const selectedDifficulty = ref<'casual' | 'challenging'>('casual')
 const { t } = useI18n()
 
-const feedback = computed(() => {
-  if (!state.value) return ''
-  if (state.value.result === 'correct') return t('challenge.correct')
-  if (state.value.result === 'incorrect') return t('challenge.incorrect')
-  if (state.value.result === 'revealed') {
-    return t('challenge.guessedName', { name: pokemon.value?.displayName ?? '' })
-  }
-  return t('challenge.prompt')
-})
+const allSelected = computed(() => selectedGenerations.value.length === SUPPORTED_GENERATIONS.length)
 
-async function loadRound(previousId: number | null = null) {
-  isLoading.value = true
+function toggleSelectAll() {
+  if (allSelected.value) {
+    selectedGenerations.value = []
+  } else {
+    selectedGenerations.value = [...SUPPORTED_GENERATIONS]
+  }
+}
+
+const isChallenging = computed(() => session.value.config.difficulty === 'challenging')
+
+const { remaining, isRunning, start: startTimer, stop: stopTimer, reset: resetTimer } = useTimer(
+  TIMER_DURATION,
+  () => {
+    session.value = recordWrong(session.value)
+    if (session.value.phase === 'playing') {
+      loadRound(pokemon.value?.id ?? null)
+    }
+  },
+)
+
+const timerPercent = computed(() => (remaining.value / TIMER_DURATION) * 100)
+const timerDanger = computed(() => remaining.value <= 10)
+
+async function handleStart() {
   error.value = null
+  isLoading.value = true
+  try {
+    const config = { generations: [...selectedGenerations.value], difficulty: selectedDifficulty.value }
+    ids.value = (await pokemonRepository.getMultiGenerationCatalog(config.generations)).map((e) => e.id)
+    session.value = startGame(session.value, config)
+    await loadRound(null)
+  } catch {
+    error.value = t('challenge.initialError')
+    isLoading.value = false
+  }
+}
+
+async function loadRound(previousId: number | null) {
+  isLoading.value = true
+  stopTimer()
   try {
     const nextId = pickNextPokemonId(ids.value, previousId)
     pokemon.value = await pokemonRepository.getPokemon(nextId)
-    state.value = state.value ? beginNextRound(state.value, nextId) : createChallengeState(nextId)
     guess.value = ''
+    if (isChallenging.value) startTimer()
   } catch {
     error.value = t('challenge.roundError')
   } finally {
@@ -46,96 +82,141 @@ async function loadRound(previousId: number | null = null) {
   }
 }
 
-async function initialize() {
-  try {
-    ids.value = await loadIdsForGeneration(generation.value)
-    await loadRound()
-  } catch {
-    error.value = t('challenge.initialError')
-    isLoading.value = false
+function handleGuess() {
+  if (!pokemon.value || isLoading.value || isRevealed.value) return
+  if (!guess.value.trim()) return
+
+  if (isCorrectPokemonGuess(guess.value, pokemon.value.name)) {
+    stopTimer()
+    session.value = recordCorrect(session.value)
+    isRevealed.value = true
+  } else {
+    stopTimer()
+    session.value = recordWrong(session.value)
+    if (session.value.phase === 'playing') {
+      guess.value = ''
+      if (isChallenging.value) startTimer()
+    }
   }
 }
 
-async function loadIdsForGeneration(selectedGeneration: '1' | '2' | 'all') {
-  const catalog =
-    selectedGeneration === 'all'
-      ? await pokemonRepository.getAllSupportedCatalog()
-      : await pokemonRepository.getGenerationCatalog(Number(selectedGeneration))
-  return catalog.map((entry) => entry.id)
+function handleContinue() {
+  isRevealed.value = false
+  loadRound(pokemon.value?.id ?? null)
 }
 
-function handleSubmit() {
-  if (!pokemon.value || !state.value || state.value.isRevealed) return
-  state.value = submitGuess(state.value, guess.value, pokemon.value.name)
-}
-
-function handleReveal() {
-  if (!state.value) return
-  state.value = revealCurrentPokemon(state.value)
-}
-
-async function handleNext() {
-  await loadRound(state.value?.currentId ?? null)
-}
-
-onMounted(initialize)
-watch(generation, async () => {
-  isLoading.value = true
+function handleTryAgain() {
+  session.value = resetToSetup(session.value)
+  pokemon.value = null
   error.value = null
-  try {
-    ids.value = await loadIdsForGeneration(generation.value)
-    state.value = null
-    await loadRound()
-  } catch {
-    error.value = t('challenge.generationError')
-    isLoading.value = false
-  }
-})
+  resetTimer()
+}
 </script>
 
 <template>
-  <section class="page-header">
-    <select v-model="generation" class="generation-select" aria-label="Challenge generation">
-      <option value="1">{{ t('common.generationI') }}</option>
-      <option value="2">{{ t('common.generationII') }}</option>
-      <option value="all">{{ t('common.allGenerations') }}</option>
-    </select>
+  <!-- SETUP PHASE -->
+  <section v-if="session.phase === 'setup'" class="challenge-setup">
     <h1>{{ t('challenge.title') }}</h1>
     <p>{{ t('challenge.description') }}</p>
-  </section>
 
-  <p v-if="error" class="status error">{{ error }}</p>
-  <p v-else-if="isLoading" class="status">{{ t('challenge.loading') }}</p>
+    <fieldset class="generation-picker">
+      <legend>{{ t('challenge.selectGenerations') }}</legend>
+      <label class="checkbox-label">
+        <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" />
+        {{ t('common.allGenerations') }}
+      </label>
+      <label v-for="gen in SUPPORTED_GENERATIONS" :key="gen" class="checkbox-label">
+        <input type="checkbox" :value="gen" v-model="selectedGenerations" />
+        {{ gen === 1 ? t('common.generationI') : t('common.generationII') }}
+      </label>
+    </fieldset>
 
-  <section v-else-if="pokemon && state" class="challenge-card">
-    <div class="scoreboard">
-      <span class="streak-counter" :class="{ 'on-fire': state.streak >= 3 }">
-        {{ t('challenge.streak') }} <strong>{{ state.streak }}</strong>
-        <span v-if="state.streak >= 3" aria-hidden="true">🔥</span>
-      </span>
-      <span>{{ t('challenge.correctCount') }} <strong>{{ state.totalCorrect }}</strong></span>
-      <span>{{ t('challenge.attempts') }} <strong>{{ state.totalAttempted }}</strong></span>
+    <fieldset class="difficulty-picker">
+      <legend>{{ t('challenge.selectDifficulty') }}</legend>
+      <label class="radio-label">
+        <input type="radio" value="casual" v-model="selectedDifficulty" />
+        <span>
+          <strong>{{ t('challenge.casual') }}</strong>
+          <small>{{ t('challenge.casualDescription') }}</small>
+        </span>
+      </label>
+      <label class="radio-label">
+        <input type="radio" value="challenging" v-model="selectedDifficulty" />
+        <span>
+          <strong>{{ t('challenge.challenging') }}</strong>
+          <small>{{ t('challenge.challengingDescription') }}</small>
+        </span>
+      </label>
+    </fieldset>
+
+    <p v-if="error" class="status error">{{ error }}</p>
+    <div v-if="isLoading" class="pokeball-loader">
+      <div class="pokeball">
+        <div class="pokeball-top"></div>
+        <div class="pokeball-center"></div>
+        <div class="pokeball-bottom"></div>
+      </div>
     </div>
 
-    <div class="silhouette-frame" :class="{ revealed: state.isRevealed }">
-      <img v-if="pokemon.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
+    <button class="start-button" @click="handleStart" :disabled="selectedGenerations.length === 0 || isLoading">
+      {{ t('challenge.start') }}
+    </button>
+  </section>
+
+  <!-- PLAYING PHASE -->
+  <section v-else-if="session.phase === 'playing'" class="challenge-card">
+    <div v-if="isChallenging" class="timer-bar" :class="{ danger: timerDanger }">
+      <div class="timer-fill" :style="{ width: timerPercent + '%' }"></div>
+      <span class="timer-text">{{ remaining }}s</span>
+    </div>
+
+    <div class="scoreboard">
+      <span class="streak-counter" :class="{ 'on-fire': session.streak >= 3 }">
+        {{ t('challenge.streak') }} <strong>{{ session.streak }}</strong>
+        <span v-if="session.streak >= 3" aria-hidden="true">&#x1F525;</span>
+      </span>
+      <span class="health-display" :aria-label="t('challenge.health', { count: session.health })">
+        <span v-for="i in session.maxHealth" :key="i" class="heart" :class="{ lost: i > session.health }">&#x2764;&#xFE0F;</span>
+      </span>
+      <span>{{ t('challenge.correctCount') }} <strong>{{ session.score }}</strong></span>
+    </div>
+
+    <div class="silhouette-frame" :class="{ revealed: isRevealed }">
+      <img v-if="pokemon?.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
       <div v-else class="artwork-fallback">No artwork</div>
     </div>
 
-    <p class="feedback" :class="state.result">{{ feedback }}</p>
-
-    <form class="guess-form" @submit.prevent="handleSubmit">
-      <input v-model="guess" type="text" :placeholder="t('challenge.inputPlaceholder')" />
-      <button type="submit" :disabled="state.isRevealed">{{ t('challenge.guess') }}</button>
-    </form>
-
-    <div class="challenge-actions">
-      <button @click="handleReveal" :disabled="state.isRevealed">
-        {{ t('challenge.reveal') }}
-      </button>
-      <button @click="handleNext" :disabled="!state.isRevealed">
-        {{ t('challenge.next') }}
-      </button>
+    <div v-if="isRevealed && pokemon" class="correct-reveal">
+      <p class="correct-name">{{ pokemon.displayName }}</p>
+      <form @submit.prevent="handleContinue">
+        <button class="start-button" type="submit">{{ t('challenge.continue') }}</button>
+      </form>
     </div>
+
+    <template v-else>
+      <p v-if="error" class="status error">{{ error }}</p>
+
+      <form class="guess-form" @submit.prevent="handleGuess">
+        <input v-model="guess" type="text" :placeholder="t('challenge.inputPlaceholder')" :disabled="isLoading" />
+        <button type="submit" :disabled="isLoading">{{ t('challenge.guess') }}</button>
+      </form>
+    </template>
+  </section>
+
+  <!-- GAME OVER PHASE -->
+  <section v-else-if="session.phase === 'gameOver'" class="game-over">
+    <h2>{{ t('challenge.gameOver') }}</h2>
+
+    <div v-if="pokemon" class="game-over-reveal">
+      <img v-if="pokemon.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
+      <p>{{ t('challenge.guessedName', { name: pokemon.displayName }) }}</p>
+    </div>
+
+    <div class="final-score">
+      <p>{{ t('challenge.finalScore', { score: session.score }) }}</p>
+      <p>{{ t('challenge.bestStreak', { streak: session.bestStreak }) }}</p>
+    </div>
+
+    <button class="start-button" @click="handleTryAgain">{{ t('challenge.tryAgain') }}</button>
   </section>
 </template>

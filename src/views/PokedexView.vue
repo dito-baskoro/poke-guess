@@ -132,20 +132,31 @@ watch(generation, async () => {
 
 <template>
   <section class="page-header">
-    <select v-model="generation" class="generation-select" aria-label="Generation">
-      <option value="1">{{ t('common.generationI') }}</option>
-      <option value="2">{{ t('common.generationII') }}</option>
-    </select>
     <h1>{{ t('pokedex.title') }}</h1>
     <p>{{ t('pokedex.description') }}</p>
   </section>
 
   <p v-if="error" class="status error">{{ error }}</p>
-  <p v-if="isInitialLoading" class="status">{{ t('pokedex.loadingPokemon') }}</p>
+
+  <div v-if="isInitialLoading" class="pokeball-loader">
+    <div class="pokeball">
+      <div class="pokeball-top"></div>
+      <div class="pokeball-center"></div>
+      <div class="pokeball-bottom"></div>
+    </div>
+  </div>
 
   <template v-if="!isInitialLoading">
     <section class="pokedex-toolbar">
       <div class="filter-group">
+        <label class="generation-field">
+          <span>{{ t('common.generation') }}</span>
+          <select v-model="generation" class="generation-select" aria-label="Generation">
+            <option value="1">{{ t('common.generationI') }}</option>
+            <option value="2">{{ t('common.generationII') }}</option>
+          </select>
+        </label>
+
         <label class="search-field">
           <span>{{ t('common.search') }}</span>
           <input v-model="searchQuery" type="search" :placeholder="t('pokedex.searchPlaceholder')" />
