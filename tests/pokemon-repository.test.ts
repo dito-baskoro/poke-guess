@@ -49,6 +49,14 @@ describe('PokemonRepository', () => {
           ],
         }),
       })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          pokemon_species: [
+            { name: 'treecko', url: 'https://pokeapi.co/api/v2/pokemon-species/252/' },
+          ],
+        }),
+      })
     vi.stubGlobal('fetch', fetchMock)
 
     const repository = new PokemonRepository()
@@ -56,6 +64,7 @@ describe('PokemonRepository', () => {
     await expect(repository.getAllSupportedCatalog()).resolves.toEqual([
       { id: 1, name: 'bulbasaur' },
       { id: 152, name: 'chikorita' },
+      { id: 252, name: 'treecko' },
     ])
   })
 

@@ -30,6 +30,11 @@ const selectedDifficulty = ref<'casual' | 'challenging'>('casual')
 const { t } = useI18n()
 
 const allSelected = computed(() => selectedGenerations.value.length === SUPPORTED_GENERATIONS.length)
+const generationLabels = computed(() => ({
+  1: t('common.generationI'),
+  2: t('common.generationII'),
+  3: t('common.generationIII'),
+}))
 
 function toggleSelectAll() {
   if (allSelected.value) {
@@ -143,7 +148,7 @@ function handleTryAgain() {
       </label>
       <label v-for="gen in SUPPORTED_GENERATIONS" :key="gen" class="checkbox-label">
         <input type="checkbox" :value="gen" v-model="selectedGenerations" />
-        {{ gen === 1 ? t('common.generationI') : t('common.generationII') }}
+        {{ generationLabels[gen] }}
       </label>
     </fieldset>
 

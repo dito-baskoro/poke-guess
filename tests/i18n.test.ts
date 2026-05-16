@@ -35,4 +35,9 @@ describe('i18n messages', () => {
     expect(getMessage('en', 'challenge.reveal')).toBe('Skip')
     expect(getMessage('id', 'challenge.reveal')).toBe('Lewati')
   })
+
+  it('returns localized generation III labels', () => {
+    expect(getMessage('en', 'common.generationIII')).toBe('Generation III')
+    expect(getMessage('id', 'common.generationIII')).toBe('Generasi III')
+  })
 })
