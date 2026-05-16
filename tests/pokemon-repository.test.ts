@@ -59,6 +59,35 @@ describe('PokemonRepository', () => {
     ])
   })
 
+  it('combines every explicitly selected generation into one catalog', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          pokemon_species: [
+            { name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon-species/1/' },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          pokemon_species: [
+            { name: 'chikorita', url: 'https://pokeapi.co/api/v2/pokemon-species/152/' },
+          ],
+        }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const repository = new PokemonRepository()
+
+    await expect(repository.getMultiGenerationCatalog([1, 2])).resolves.toEqual([
+      { id: 1, name: 'bulbasaur' },
+      { id: 152, name: 'chikorita' },
+    ])
+  })
+
   it('caches detailed pokemon records after the first fetch', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

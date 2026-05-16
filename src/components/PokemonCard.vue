@@ -32,7 +32,13 @@ function formatStatName(name: string): string {
 
     <div class="artwork-frame">
       <img v-if="pokemon.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
-      <div v-else class="artwork-fallback">No artwork</div>
+      <div v-else class="pokeball-loader" aria-hidden="true">
+        <div class="pokeball">
+          <div class="pokeball-top"></div>
+          <div class="pokeball-center"></div>
+          <div class="pokeball-bottom"></div>
+        </div>
+      </div>
     </div>
 
     <div class="type-row">

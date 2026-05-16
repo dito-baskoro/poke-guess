@@ -1,5 +1,5 @@
 export type Difficulty = 'casual' | 'challenging'
-export type GamePhase = 'setup' | 'playing' | 'gameOver'
+export type GamePhase = 'setup' | 'playing' | 'completed' | 'gameOver'
 
 export interface GameConfig {
   generations: number[]
@@ -15,6 +15,7 @@ export interface GameSession {
   totalAttempted: number
   health: number
   maxHealth: number
+  remainingPokemonIds: number[]
 }
 
 export function createGameSession(): GameSession {
@@ -27,6 +28,7 @@ export function createGameSession(): GameSession {
     totalAttempted: 0,
     health: 2,
     maxHealth: 2,
+    remainingPokemonIds: [],
   }
 }
 
@@ -34,7 +36,11 @@ function getMaxHealth(difficulty: Difficulty): number {
   return difficulty === 'casual' ? 2 : 1
 }
 
-export function startGame(session: GameSession, config: GameConfig): GameSession {
+export function startGame(
+  session: GameSession,
+  config: GameConfig,
+  pokemonIds: number[] = [],
+): GameSession {
   const maxHealth = getMaxHealth(config.difficulty)
   return {
     phase: 'playing',
@@ -45,17 +51,31 @@ export function startGame(session: GameSession, config: GameConfig): GameSession
     totalAttempted: 0,
     health: maxHealth,
     maxHealth,
+    remainingPokemonIds: [...pokemonIds],
   }
 }
 
-export function recordCorrect(session: GameSession): GameSession {
+export function recordCorrect(session: GameSession, pokemonId?: number): GameSession {
   const newStreak = session.streak + 1
+  const remainingPokemonIds =
+    pokemonId === undefined
+      ? session.remainingPokemonIds
+      : session.remainingPokemonIds.filter((id) => id !== pokemonId)
+
   return {
     ...session,
     score: session.score + 1,
     streak: newStreak,
     bestStreak: Math.max(session.bestStreak, newStreak),
     totalAttempted: session.totalAttempted + 1,
+    remainingPokemonIds,
+  }
+}
+
+export function completeGame(session: GameSession): GameSession {
+  return {
+    ...session,
+    phase: 'completed',
   }
 }
 

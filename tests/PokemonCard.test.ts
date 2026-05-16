@@ -118,4 +118,25 @@ describe('PokemonCard', () => {
 
     expect(container.querySelector<HTMLElement>('.pokemon-card')).toHaveClass('is-compact')
   })
+
+  it('shows a pokeball loader when artwork is unavailable', () => {
+    const { container, queryByText } = render(PokemonCard, {
+      props: {
+        pokemon: {
+          id: 132,
+          name: 'ditto',
+          displayName: 'Ditto',
+          imageUrl: '',
+          types: ['normal'],
+          height: 3,
+          weight: 40,
+          abilities: ['limber'],
+          stats: [{ name: 'hp', value: 48 }],
+        },
+      },
+    })
+
+    expect(queryByText('No artwork')).not.toBeInTheDocument()
+    expect(container.querySelector('.pokeball-loader')).toBeInTheDocument()
+  })
 })

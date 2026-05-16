@@ -23,4 +23,16 @@ describe('i18n messages', () => {
       'Cari Pokemon berdasarkan nama atau tipenya.',
     )
   })
+
+  it('returns localized challenge completion copy', () => {
+    expect(getMessage('en', 'challenge.completed')).toBe('Congratulations! 🎉')
+    expect(getMessage('en', 'challenge.completedDescription')).toBe('You beat the game!')
+    expect(getMessage('id', 'challenge.completed')).toBe('Selamat! 🎉')
+    expect(getMessage('id', 'challenge.completedDescription')).toBe('Kamu menamatkan gamenya!')
+  })
+
+  it('returns localized skip copy', () => {
+    expect(getMessage('en', 'challenge.reveal')).toBe('Skip')
+    expect(getMessage('id', 'challenge.reveal')).toBe('Lewati')
+  })
 })
