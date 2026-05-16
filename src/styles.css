@@ -142,9 +142,17 @@ h3,
     transform var(--transition-fast);
 }
 
-.site-header nav a:hover {
+.site-header nav a:hover,
+.site-header nav a:focus-visible {
   color: var(--color-text);
   transform: translateY(-1px);
+}
+
+.site-header nav a:focus-visible,
+.home-card:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 4px;
 }
 
 .language-select select,
@@ -250,8 +258,11 @@ h1 {
 }
 
 .home-card:hover,
+.home-card:focus-visible,
 .challenge-card:hover,
-.pokemon-card:hover {
+.challenge-card:focus-within,
+.pokemon-card:hover,
+.pokemon-card:focus-within {
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
   transform: translateY(-6px) scale(1.01);
@@ -376,6 +387,14 @@ h1 {
 .type-pill[data-type='steel'] { --type-color: var(--type-steel); }
 .type-pill[data-type='fairy'] { --type-color: var(--type-fairy); }
 
+.type-pill[data-type='fighting'],
+.type-pill[data-type='poison'],
+.type-pill[data-type='ghost'],
+.type-pill[data-type='dragon'],
+.type-pill[data-type='dark'] {
+  color: var(--color-text);
+}
+
 .facts {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -448,7 +467,7 @@ button {
   cursor: pointer;
   color: var(--color-text);
   font-weight: 700;
-  background: linear-gradient(135deg, var(--color-orange), var(--color-magenta));
+  background: linear-gradient(135deg, #b84b00, #c81d5a);
   box-shadow: var(--shadow-glow);
   transition:
     box-shadow var(--transition-fast),
@@ -557,6 +576,12 @@ input {
 .skeleton-card {
   display: grid;
   gap: var(--space-3);
+}
+
+.skeleton-card:hover {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-card);
+  transform: none;
 }
 
 .skeleton-line,
