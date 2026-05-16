@@ -1,0 +1,27 @@
+tests/PokemonCard.test.ts
+  c99808bd725b4d39 79-80,82-97
+package.json
+  c99808bd725b4d39 6
+src/styles.css
+  c99808bd725b4d39 407,413-414,596-633
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "f36b207d773c7b1a413666990cb3ab99f2e133db",
+  "prompts": {
+    "c99808bd725b4d39": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3014-bd50-7f71-8aa5-c1768237e260",
+        "model": "gpt-5.4"
+      },
+      "human_author": "dito-baskoro <ditoabaskoro@gmail.com>",
+      "messages": [],
+      "total_additions": 66,
+      "total_deletions": 6,
+      "accepted_lines": 115,
+      "overriden_lines": 3
+    }
+  }
+}
