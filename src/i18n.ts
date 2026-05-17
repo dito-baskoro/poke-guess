@@ -75,6 +75,15 @@ const messages = {
       completedDescription: 'You beat the game!',
       health: '{count} lives remaining',
       timeUp: "Time's up!",
+      leaderboard: {
+        title: 'Leaderboard',
+        empty: 'No scores yet. Be the first!',
+        rank: 'Rank',
+        name: 'Name',
+        streak: 'STK',
+        time: 'Time',
+        score: 'SCR',
+      },
     },
     pagination: {
       previous: 'Previous',
@@ -154,6 +163,15 @@ const messages = {
       completedDescription: 'Kamu menamatkan gamenya!',
       health: '{count} nyawa tersisa',
       timeUp: 'Waktu habis!',
+      leaderboard: {
+        title: 'Papan Skor',
+        empty: 'Belum ada skor. Jadilah yang pertama!',
+        rank: 'Peringkat',
+        name: 'Nama',
+        streak: 'STK',
+        time: 'Waktu',
+        score: 'SCR',
+      },
     },
     pagination: {
       previous: 'Sebelumnya',
