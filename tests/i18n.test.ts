@@ -25,10 +25,15 @@ describe('i18n messages', () => {
   })
 
   it('returns localized challenge completion copy', () => {
-    expect(getMessage('en', 'challenge.completed')).toBe('Congratulations! 🎉')
+    expect(getMessage('en', 'challenge.completed')).toBe('Congratulations!')
     expect(getMessage('en', 'challenge.completedDescription')).toBe('You beat the game!')
-    expect(getMessage('id', 'challenge.completed')).toBe('Selamat! 🎉')
+    expect(getMessage('id', 'challenge.completed')).toBe('Selamat!')
     expect(getMessage('id', 'challenge.completedDescription')).toBe('Kamu menamatkan gamenya!')
+  })
+
+  it('returns localized challenge elapsed-time copy', () => {
+    expect(getMessage('en', 'challenge.elapsedTime')).toBe('Time: {time}')
+    expect(getMessage('id', 'challenge.elapsedTime')).toBe('Waktu: {time}')
   })
 
   it('returns localized skip copy', () => {

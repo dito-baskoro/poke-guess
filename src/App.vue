@@ -14,13 +14,30 @@ const { locale, t } = useI18n()
         <RouterLink to="/pokedex">{{ t('nav.pokedex') }}</RouterLink>
         <RouterLink to="/challenge">{{ t('nav.challenge') }}</RouterLink>
       </nav>
-      <label class="language-select">
-        <span class="sr-only">{{ t('nav.language') }}</span>
-        <select v-model="locale" aria-label="Language">
-          <option value="en">🇬🇧 English</option>
-          <option value="id">🇮🇩 Bahasa Indonesia</option>
-        </select>
-      </label>
+      <div class="language-toggle" role="group" :aria-label="t('nav.language')">
+        <button
+          type="button"
+          class="language-option"
+          :class="{ 'is-active': locale === 'en' }"
+          :aria-pressed="locale === 'en'"
+          aria-label="English"
+          @click="locale = 'en'"
+        >
+          <span class="flag-icon flag-icon--gb" aria-hidden="true"></span>
+          <span>EN</span>
+        </button>
+        <button
+          type="button"
+          class="language-option"
+          :class="{ 'is-active': locale === 'id' }"
+          :aria-pressed="locale === 'id'"
+          aria-label="Bahasa Indonesia"
+          @click="locale = 'id'"
+        >
+          <span class="flag-icon flag-icon--id" aria-hidden="true"></span>
+          <span>ID</span>
+        </button>
+      </div>
     </header>
     <main>
       <RouterView />

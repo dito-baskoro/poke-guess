@@ -14,6 +14,7 @@ import {
 import type { Pokemon } from '../domain/pokemon'
 import { pokemonRepository, SUPPORTED_GENERATIONS } from '../services/pokemonRepository'
 import { useTimer } from '../composables/useTimer'
+import { useElapsedTimer } from '../composables/useElapsedTimer'
 import { useI18n } from '../i18n'
 
 const TIMER_DURATION = 30
@@ -27,6 +28,7 @@ const isRevealed = ref(false)
 const error = ref<string | null>(null)
 const selectedGenerations = ref<number[]>([1])
 const selectedDifficulty = ref<'casual' | 'challenging'>('casual')
+const finalElapsedSeconds = ref<number | null>(null)
 const { t } = useI18n()
 
 const allSelected = computed(() => selectedGenerations.value.length === SUPPORTED_GENERATIONS.length)
@@ -52,12 +54,36 @@ const { remaining, isRunning, start: startTimer, stop: stopTimer, reset: resetTi
     session.value = recordWrong(session.value)
     if (session.value.phase === 'playing') {
       loadRound(pokemon.value?.id ?? null)
+    } else {
+      finishElapsedTimer()
     }
   },
 )
+const {
+  elapsed,
+  start: startElapsedTimer,
+  stop: stopElapsedTimer,
+  reset: resetElapsedTimer,
+} = useElapsedTimer()
 
 const timerPercent = computed(() => (remaining.value / TIMER_DURATION) * 100)
 const timerDanger = computed(() => remaining.value <= 10)
+const formattedElapsedTime = computed(() => formatElapsedTime(elapsed.value))
+const formattedFinalElapsedTime = computed(() =>
+  finalElapsedSeconds.value === null ? null : formatElapsedTime(finalElapsedSeconds.value),
+)
+
+function formatElapsedTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
+function finishElapsedTimer() {
+  if (!isChallenging.value || finalElapsedSeconds.value !== null) return
+  stopElapsedTimer()
+  finalElapsedSeconds.value = elapsed.value
+}
 
 async function handleStart() {
   error.value = null
@@ -66,6 +92,9 @@ async function handleStart() {
     const config = { generations: [...selectedGenerations.value], difficulty: selectedDifficulty.value }
     ids.value = (await pokemonRepository.getMultiGenerationCatalog(config.generations)).map((e) => e.id)
     session.value = startGame(session.value, config, ids.value)
+    finalElapsedSeconds.value = null
+    resetElapsedTimer()
+    if (config.difficulty === 'challenging') startElapsedTimer()
     await loadRound(null)
   } catch {
     error.value = t('challenge.initialError')
@@ -99,6 +128,9 @@ function handleGuess() {
   } else {
     stopTimer()
     session.value = recordWrong(session.value)
+    if (session.value.phase === 'gameOver') {
+      finishElapsedTimer()
+    }
     if (session.value.phase === 'playing') {
       guess.value = ''
       if (isChallenging.value) startTimer()
@@ -111,6 +143,9 @@ function handleSkip() {
 
   stopTimer()
   session.value = recordWrong(session.value)
+  if (session.value.phase === 'gameOver') {
+    finishElapsedTimer()
+  }
   if (session.value.phase === 'playing') {
     isRevealed.value = true
   }
@@ -120,6 +155,7 @@ function handleContinue() {
   isRevealed.value = false
   if (!session.value.remainingPokemonIds.length) {
     session.value = completeGame(session.value)
+    finishElapsedTimer()
     return
   }
 
@@ -131,6 +167,8 @@ function handleTryAgain() {
   pokemon.value = null
   error.value = null
   resetTimer()
+  resetElapsedTimer()
+  finalElapsedSeconds.value = null
 }
 </script>
 
@@ -192,12 +230,17 @@ function handleTryAgain() {
     </div>
 
     <div class="scoreboard">
-      <span class="streak-counter" :class="{ 'on-fire': session.streak >= 3 }">
-        {{ t('challenge.streak') }} <strong>{{ session.streak }}</strong>
-        <span v-if="session.streak >= 3" aria-hidden="true">&#x1F525;</span>
-      </span>
+      <div>
+        <span v-if="isChallenging" class="elapsed-time">
+          {{ t('challenge.elapsedTime', { time: formattedElapsedTime }) }}
+        </span>
+        <span class="streak-counter" :class="{ 'on-fire': session.streak >= 3 }">
+          {{ t('challenge.streak') }} <strong>{{ session.streak }}</strong>
+          <span v-if="session.streak >= 3" aria-hidden="true">&#x1F525;</span>
+        </span>
+      </div>
       <span class="health-display" :aria-label="t('challenge.health', { count: session.health })">
-        <span v-for="i in session.maxHealth" :key="i" class="heart" :class="{ lost: i > session.health }">&#x2764;&#xFE0F;</span>
+        <span v-for="i in session.maxHealth" :key="i" class="heart" :class="{ lost: i > session.health }" aria-hidden="true"></span>
       </span>
       <span>{{ t('challenge.correctCount') }} <strong>{{ session.score }}</strong></span>
     </div>
@@ -239,12 +282,17 @@ function handleTryAgain() {
 
   <!-- COMPLETED PHASE -->
   <section v-else-if="session.phase === 'completed'" class="game-over is-completed">
-    <h2>{{ t('challenge.completed') }}</h2>
+    <h2>
+      <span class="party-popper" aria-hidden="true"></span>
+      {{ t('challenge.completed') }}
+      <span class="party-popper party-popper--flipped" aria-hidden="true"></span>
+    </h2>
     <p>{{ t('challenge.completedDescription') }}</p>
 
     <div class="final-score">
       <p>{{ t('challenge.finalScore', { score: session.score }) }}</p>
       <p>{{ t('challenge.bestStreak', { streak: session.bestStreak }) }}</p>
+      <p v-if="formattedFinalElapsedTime">{{ t('challenge.elapsedTime', { time: formattedFinalElapsedTime }) }}</p>
     </div>
 
     <button class="start-button" @click="handleTryAgain">{{ t('challenge.tryAgain') }}</button>
@@ -262,6 +310,7 @@ function handleTryAgain() {
     <div class="final-score">
       <p>{{ t('challenge.finalScore', { score: session.score }) }}</p>
       <p>{{ t('challenge.bestStreak', { streak: session.bestStreak }) }}</p>
+      <p v-if="formattedFinalElapsedTime">{{ t('challenge.elapsedTime', { time: formattedFinalElapsedTime }) }}</p>
     </div>
 
     <button class="start-button" @click="handleTryAgain">{{ t('challenge.tryAgain') }}</button>
