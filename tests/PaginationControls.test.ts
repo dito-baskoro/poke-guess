@@ -17,15 +17,21 @@ describe('PaginationControls', () => {
     expect(emitted().next).toHaveLength(1)
   })
 
-  it('renders directional arrow labels', () => {
-    const { getByRole } = render(PaginationControls, {
+  it('renders directional arrow icons alongside the labels', () => {
+    const { getByRole, container } = render(PaginationControls, {
       props: {
         currentPage: 2,
         totalPages: 3,
       },
     })
 
-    expect(getByRole('button', { name: /← previous/i })).toBeInTheDocument()
-    expect(getByRole('button', { name: /next →/i })).toBeInTheDocument()
+    const previousButton = getByRole('button', { name: /previous/i })
+    const nextButton = getByRole('button', { name: /next/i })
+
+    expect(previousButton).toBeInTheDocument()
+    expect(nextButton).toBeInTheDocument()
+    expect(previousButton.querySelector('.arrow-icon--left')).not.toBeNull()
+    expect(nextButton.querySelector('.arrow-icon--right')).not.toBeNull()
+    expect(container.querySelectorAll('.arrow-icon')).toHaveLength(2)
   })
 })
