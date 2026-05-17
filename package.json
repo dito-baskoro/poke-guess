@@ -6,7 +6,7 @@
   "author": "ditoabaskoro@gmail.com",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && cp dist/index.html dist/404.html",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "vue-tsc --noEmit"
