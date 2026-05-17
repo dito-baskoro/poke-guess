@@ -7,7 +7,7 @@ import ChallengeView from './views/ChallengeView.vue'
 import './styles.css'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', component: HomeView },
     { path: '/pokedex', component: PokedexView },
