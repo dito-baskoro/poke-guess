@@ -18,6 +18,7 @@ import { useElapsedTimer } from '../composables/useElapsedTimer'
 import { useLeaderboard } from '../composables/useLeaderboard'
 import ChallengeLeaderboard from '../components/ChallengeLeaderboard.vue'
 import { useI18n } from '../i18n'
+import bgAsset from '../assets/bg-asset.png'
 
 const TIMER_DURATION = 30
 const PLAYER_NAME = 'Ash Ketchum'
@@ -259,19 +260,21 @@ function handleTryAgain() {
         <span>{{ t('challenge.correctCount') }} <strong>{{ session.score }}</strong></span>
       </div>
 
-      <div class="silhouette-frame" :class="{ revealed: isRevealed }">
-        <img v-if="pokemon?.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
-        <div v-else class="pokeball-loader" aria-hidden="true">
-          <div class="pokeball">
-            <div class="pokeball-top"></div>
-            <div class="pokeball-center"></div>
-            <div class="pokeball-bottom"></div>
+      <div class="silhouette-frame" :class="{ revealed: isRevealed }" :style="{ '--bg-asset': `url(${bgAsset})` }">
+        <div class="silhouette-image">
+          <img v-if="pokemon?.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
+          <div v-else class="pokeball-loader" aria-hidden="true">
+            <div class="pokeball">
+              <div class="pokeball-top"></div>
+              <div class="pokeball-center"></div>
+              <div class="pokeball-bottom"></div>
+            </div>
           </div>
         </div>
+        <p v-if="isRevealed && pokemon" class="silhouette-name">{{ pokemon.displayName }}</p>
       </div>
 
       <div v-if="isRevealed && pokemon" class="correct-reveal">
-        <p class="correct-name">{{ pokemon.displayName }}</p>
         <form @submit.prevent="handleContinue">
           <button class="start-button" type="submit">{{ t('challenge.continue') }}</button>
         </form>

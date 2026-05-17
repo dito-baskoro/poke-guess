@@ -467,6 +467,56 @@ h1 {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.silhouette-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  overflow: hidden;
+  background:
+    var(--bg-asset) center/cover no-repeat,
+    rgba(255, 255, 255, 0.06);
+}
+
+.silhouette-image {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 180px;
+  max-width: 50%;
+}
+
+@media (min-width: 761px) {
+  .silhouette-image {
+    margin: 30px;
+  }
+}
+
+.silhouette-name {
+  flex: 1 1 0;
+  margin: 0;
+  padding-right: var(--space-2);
+  font-family: 'Pokemon Solid', 'Press Start 2P', var(--font-display), sans-serif;
+  color: var(--color-yellow);
+  font-size: clamp(1.4rem, 4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  line-height: 1.05;
+  text-shadow:
+    -2px -2px 0 #2a3a8c,
+    2px -2px 0 #2a3a8c,
+    -2px 2px 0 #2a3a8c,
+    2px 2px 0 #2a3a8c,
+    0 4px 0 #1a2456,
+    0 6px 14px rgba(0, 0, 0, 0.45);
+  animation: card-enter 400ms both;
+  word-break: break-word;
+}
+
 .artwork-frame img,
 .silhouette-frame img {
   width: 100%;
