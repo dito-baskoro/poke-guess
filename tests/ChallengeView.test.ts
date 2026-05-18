@@ -27,6 +27,7 @@ describe('ChallengeView elapsed time', () => {
 
   async function startRun(difficulty: 'casual' | 'challenging') {
     const wrapper = mount(ChallengeView)
+    await wrapper.get('[data-mode="silhouette"]').trigger('click')
     await wrapper.find(`input[value="${difficulty}"]`).setValue()
     await wrapper.get('button.start-button').trigger('click')
     await flushPromises()
@@ -49,6 +50,9 @@ describe('ChallengeView elapsed time', () => {
     await wrapper.find('input[type="text"]').setValue('wrong')
     await wrapper.find('form.guess-form').trigger('submit')
     await wrapper.vm.$nextTick()
+    await wrapper.find('input[type="text"]').setValue('wrong')
+    await wrapper.find('form.guess-form').trigger('submit')
+    await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('Game Over')
     expect(wrapper.text()).toContain('Time: 00:04')
@@ -64,5 +68,37 @@ describe('ChallengeView elapsed time', () => {
 
     expect(wrapper.text()).toContain('Congratulations!')
     expect(wrapper.text()).toContain('Time: 00:05')
+  })
+})
+
+describe('ChallengeView scramble mode', () => {
+  it('hides difficulty selector and shows type chip + scrambled letters', async () => {
+    const wrapper = mount(ChallengeView)
+    await wrapper.get('[data-mode="scramble"]').trigger('click')
+
+    expect(wrapper.find('fieldset.difficulty-picker').exists()).toBe(false)
+    expect(wrapper.find('fieldset.generation-picker').exists()).toBe(true)
+
+    await wrapper.get('button.start-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.scramble-frame').exists()).toBe(true)
+    expect(wrapper.find('.silhouette-frame').exists()).toBe(false)
+    expect(wrapper.find('.type-chip').text()).toBe('electric')
+    expect(wrapper.findAll('.scramble-letter')).toHaveLength('pikachu'.length)
+    expect(wrapper.find('.challenge-stage').classes()).not.toContain('has-leaderboard')
+  })
+
+  it('accepts the correct unscrambled name', async () => {
+    const wrapper = mount(ChallengeView)
+    await wrapper.get('[data-mode="scramble"]').trigger('click')
+    await wrapper.get('button.start-button').trigger('click')
+    await flushPromises()
+
+    await wrapper.find('input[type="text"]').setValue('pikachu')
+    await wrapper.find('form.guess-form').trigger('submit')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('Pikachu')
   })
 })

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { pickNextPokemonId } from '../domain/challenge'
 import { isCorrectPokemonGuess } from '../domain/pokemon'
+import { scrambleName } from '../domain/scramble'
 import {
   createGameSession,
   startGame,
@@ -18,10 +19,13 @@ import { useElapsedTimer } from '../composables/useElapsedTimer'
 import { useLeaderboard } from '../composables/useLeaderboard'
 import ChallengeLeaderboard from '../components/ChallengeLeaderboard.vue'
 import { useI18n } from '../i18n'
+import { getTypeColor } from '../utils/typeColors'
 import bgAsset from '../assets/bg-asset.png'
 
 const TIMER_DURATION = 30
 const PLAYER_NAME = 'Ash Ketchum'
+
+type GameMode = 'silhouette' | 'scramble'
 
 const ids = ref<number[]>([])
 const pokemon = ref<Pokemon | null>(null)
@@ -34,6 +38,8 @@ const selectedGenerations = ref<number[]>([1])
 const selectedDifficulty = ref<'casual' | 'challenging'>('casual')
 const finalElapsedSeconds = ref<number | null>(null)
 const latestEntryId = ref<string | null>(null)
+const gameMode = ref<GameMode | null>(null)
+const scrambled = ref<string>('')
 const { topEntries, recordEntry } = useLeaderboard()
 const { t } = useI18n()
 
@@ -52,6 +58,20 @@ function toggleSelectAll() {
   }
 }
 
+function selectMode(mode: GameMode) {
+  gameMode.value = mode
+  if (mode === 'scramble') {
+    selectedDifficulty.value = 'casual'
+  }
+}
+
+function backToModePicker() {
+  gameMode.value = null
+  error.value = null
+}
+
+const isSilhouetteMode = computed(() => gameMode.value === 'silhouette')
+const isScrambleMode = computed(() => gameMode.value === 'scramble')
 const isChallenging = computed(() => session.value.config.difficulty === 'challenging')
 
 const { remaining, isRunning, start: startTimer, stop: stopTimer, reset: resetTimer } = useTimer(
@@ -121,6 +141,7 @@ async function loadRound(previousId: number | null) {
   try {
     const nextId = pickNextPokemonId(session.value.remainingPokemonIds, previousId)
     pokemon.value = await pokemonRepository.getPokemon(nextId)
+    scrambled.value = scrambleName(pokemon.value.name)
     guess.value = ''
     if (isChallenging.value) startTimer()
   } catch {
@@ -183,61 +204,95 @@ function handleTryAgain() {
   resetElapsedTimer()
   finalElapsedSeconds.value = null
   latestEntryId.value = null
+  scrambled.value = ''
+  gameMode.value = null
 }
 </script>
 
 <template>
+  <!-- MODE PICKER -->
+  <section v-if="gameMode === null" class="mode-picker">
+    <h1>{{ t('challenge.modePickerTitle') }}</h1>
+    <p class="mode-picker-intro">{{ t('challenge.modePickerDescription') }}</p>
+    <div class="mode-grid">
+      <button
+        type="button"
+        class="mode-card mode-card-silhouette"
+        data-mode="silhouette"
+        @click="selectMode('silhouette')"
+      >
+        <h2>{{ t('challenge.silhouetteModeTitle') }}</h2>
+        <p>{{ t('challenge.silhouetteModeDescription') }}</p>
+      </button>
+      <button
+        type="button"
+        class="mode-card mode-card-scramble"
+        data-mode="scramble"
+        @click="selectMode('scramble')"
+      >
+        <h2>{{ t('challenge.scrambleModeTitle') }}</h2>
+        <p>{{ t('challenge.scrambleModeDescription') }}</p>
+      </button>
+    </div>
+  </section>
+
   <!-- SETUP PHASE -->
-  <section v-if="session.phase === 'setup'" class="challenge-setup">
-    <h1>{{ t('challenge.title') }}</h1>
-    <p>{{ t('challenge.description') }}</p>
-
-    <fieldset class="generation-picker">
-      <legend>{{ t('challenge.selectGenerations') }}</legend>
-      <label class="checkbox-label">
-        <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" />
-        {{ t('common.allGenerations') }}
-      </label>
-      <label v-for="gen in SUPPORTED_GENERATIONS" :key="gen" class="checkbox-label">
-        <input type="checkbox" :value="gen" v-model="selectedGenerations" />
-        {{ generationLabels[gen] }}
-      </label>
-    </fieldset>
-
-    <fieldset class="difficulty-picker">
-      <legend>{{ t('challenge.selectDifficulty') }}</legend>
-      <label class="radio-label">
-        <input type="radio" value="casual" v-model="selectedDifficulty" />
-        <span>
-          <strong>{{ t('challenge.casual') }}</strong>
-          <small>{{ t('challenge.casualDescription') }}</small>
-        </span>
-      </label>
-      <label class="radio-label">
-        <input type="radio" value="challenging" v-model="selectedDifficulty" />
-        <span>
-          <strong>{{ t('challenge.challenging') }}</strong>
-          <small>{{ t('challenge.challengingDescription') }}</small>
-        </span>
-      </label>
-    </fieldset>
-
-    <p v-if="error" class="status error">{{ error }}</p>
-    <div v-if="isLoading" class="pokeball-loader">
-      <div class="pokeball">
-        <div class="pokeball-top"></div>
-        <div class="pokeball-center"></div>
-        <div class="pokeball-bottom"></div>
+  <section v-else-if="session.phase === 'setup'" class="challenge-setup">
+    <div v-if="isLoading" class="challenge-loading">
+      <div class="pokeball-loader">
+        <div class="pokeball">
+          <div class="pokeball-top"></div>
+          <div class="pokeball-center"></div>
+          <div class="pokeball-bottom"></div>
+        </div>
       </div>
     </div>
 
-    <button class="start-button" @click="handleStart" :disabled="selectedGenerations.length === 0 || isLoading">
-      {{ t('challenge.start') }}
-    </button>
+    <template v-else>
+      <button type="button" class="back-link" @click="backToModePicker">&larr; {{ t('challenge.back') }}</button>
+      <h1>{{ isScrambleMode ? t('challenge.scrambleTitle') : t('challenge.title') }}</h1>
+      <p>{{ isScrambleMode ? t('challenge.scrambleDescription') : t('challenge.description') }}</p>
+
+      <fieldset class="generation-picker">
+        <legend>{{ t('challenge.selectGenerations') }}</legend>
+        <label class="checkbox-label">
+          <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" />
+          {{ t('common.allGenerations') }}
+        </label>
+        <label v-for="gen in SUPPORTED_GENERATIONS" :key="gen" class="checkbox-label">
+          <input type="checkbox" :value="gen" v-model="selectedGenerations" />
+          {{ generationLabels[gen] }}
+        </label>
+      </fieldset>
+
+      <fieldset v-if="!isScrambleMode" class="difficulty-picker">
+        <legend>{{ t('challenge.selectDifficulty') }}</legend>
+        <label class="radio-label">
+          <input type="radio" value="casual" v-model="selectedDifficulty" />
+          <span>
+            <strong>{{ t('challenge.casual') }}</strong>
+            <small>{{ t('challenge.casualDescription') }}</small>
+          </span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="challenging" v-model="selectedDifficulty" />
+          <span>
+            <strong>{{ t('challenge.challenging') }}</strong>
+            <small>{{ t('challenge.challengingDescription') }}</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <p v-if="error" class="status error">{{ error }}</p>
+
+      <button class="start-button" @click="handleStart" :disabled="selectedGenerations.length === 0">
+        {{ t('challenge.start') }}
+      </button>
+    </template>
   </section>
 
   <!-- PLAYING PHASE -->
-  <div v-else class="challenge-stage" :class="{ 'has-leaderboard': isChallenging }">
+  <div v-else class="challenge-stage" :class="{ 'has-leaderboard': isChallenging && isSilhouetteMode }">
     <section v-if="session.phase === 'playing'" class="challenge-card">
       <div v-if="isChallenging" class="timer-bar" :class="{ danger: timerDanger }">
         <div class="timer-fill" :style="{ width: timerPercent + '%' }"></div>
@@ -260,7 +315,12 @@ function handleTryAgain() {
         <span>{{ t('challenge.correctCount') }} <strong>{{ session.score }}</strong></span>
       </div>
 
-      <div class="silhouette-frame" :class="{ revealed: isRevealed }" :style="{ '--bg-asset': `url(${bgAsset})` }">
+      <div
+        v-if="isSilhouetteMode"
+        class="silhouette-frame"
+        :class="{ revealed: isRevealed }"
+        :style="{ '--bg-asset': `url(${bgAsset})` }"
+      >
         <div class="silhouette-image">
           <img v-if="pokemon?.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
           <div v-else class="pokeball-loader" aria-hidden="true">
@@ -269,6 +329,43 @@ function handleTryAgain() {
               <div class="pokeball-center"></div>
               <div class="pokeball-bottom"></div>
             </div>
+          </div>
+        </div>
+        <p v-if="isRevealed && pokemon" class="silhouette-name">{{ pokemon.displayName }}</p>
+      </div>
+
+      <div v-else class="scramble-frame" :class="{ revealed: isRevealed }">
+        <div
+          v-if="pokemon"
+          class="type-chip-row"
+          role="list"
+          :aria-label="t('challenge.typeClueLabel')"
+        >
+          <span
+            v-for="type in pokemon.types"
+            :key="type"
+            class="type-chip"
+            role="listitem"
+            :style="{ background: getTypeColor(type) }"
+          >
+            {{ type }}
+          </span>
+        </div>
+        <p v-if="!isRevealed" class="scramble-prompt">{{ t('challenge.scramblePrompt') }}</p>
+        <img
+          v-if="isRevealed && pokemon?.imageUrl"
+          class="scramble-reveal-image"
+          :src="pokemon.imageUrl"
+          :alt="pokemon.displayName"
+        />
+        <div v-if="pokemon && !isRevealed" class="scrambled-letters" :aria-label="scrambled">
+          <span v-for="(letter, i) in scrambled" :key="i" class="scramble-letter">{{ letter }}</span>
+        </div>
+        <div v-else-if="!pokemon" class="pokeball-loader" aria-hidden="true">
+          <div class="pokeball">
+            <div class="pokeball-top"></div>
+            <div class="pokeball-center"></div>
+            <div class="pokeball-bottom"></div>
           </div>
         </div>
         <p v-if="isRevealed && pokemon" class="silhouette-name">{{ pokemon.displayName }}</p>
@@ -284,7 +381,12 @@ function handleTryAgain() {
         <p v-if="error" class="status error">{{ error }}</p>
 
         <form class="guess-form" @submit.prevent="handleGuess">
-          <input v-model="guess" type="text" :placeholder="t('challenge.inputPlaceholder')" :disabled="isLoading" />
+          <input
+            v-model="guess"
+            type="text"
+            :placeholder="isScrambleMode ? t('challenge.scrambleInputPlaceholder') : t('challenge.inputPlaceholder')"
+            :disabled="isLoading"
+          />
           <div class="guess-actions">
             <button class="skip-button" type="button" :disabled="isLoading" @click="handleSkip">
               {{ t('challenge.reveal') }}
@@ -334,7 +436,7 @@ function handleTryAgain() {
     </section>
 
     <ChallengeLeaderboard
-      v-if="isChallenging"
+      v-if="isChallenging && isSilhouetteMode"
       :entries="topEntries"
       :highlight-id="latestEntryId"
     />
