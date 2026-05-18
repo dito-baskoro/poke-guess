@@ -26,14 +26,14 @@ export function createGameSession(): GameSession {
     streak: 0,
     bestStreak: 0,
     totalAttempted: 0,
-    health: 2,
-    maxHealth: 2,
+    health: 3,
+    maxHealth: 3,
     remainingPokemonIds: [],
   }
 }
 
 function getMaxHealth(difficulty: Difficulty): number {
-  return difficulty === 'casual' ? 2 : 1
+  return difficulty === 'casual' ? 3 : 2
 }
 
 export function startGame(
