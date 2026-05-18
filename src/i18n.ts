@@ -14,7 +14,7 @@ const messages = {
       title: 'Explore the Pokémon world.',
       intro: 'Browse a card-style Pokédex or test yourself in an endless silhouette challenge.',
       pokedexDescription: 'Browse richly detailed cards for every supported generation.',
-      challengeDescription: 'Guess silhouettes and keep your streak alive.',
+      challengeDescription: 'Test your knowledge with silhouette and scramble word challenges.',
     },
     common: {
       generation: 'Generation',
@@ -114,7 +114,7 @@ const messages = {
       title: 'Yuk jelajahi dunia Pokémon.',
       intro: 'Lihat-lihat Pokédex bergaya kartu atau uji kemampuanmu di tantangan siluet tanpa akhir.',
       pokedexDescription: 'Lihat kartu lengkap dari tiap generasi yang tersedia.',
-      challengeDescription: 'Tebak siluetnya dan jaga streak-mu.',
+      challengeDescription: 'Uji pengetahuanmu lewat tantangan siluet dan kata acak.',
     },
     common: {
       generation: 'Generasi',

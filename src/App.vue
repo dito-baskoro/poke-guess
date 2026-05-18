@@ -42,5 +42,11 @@ const { locale, t } = useI18n()
     <main>
       <RouterView />
     </main>
+    <footer class="site-footer">
+      <p>
+        Images and sounds © Nintendo. Send feedback and contribute to
+        <a href="https://github.com/dito-baskoro/poke-guess" target="_blank" rel="noopener noreferrer">github</a>
+      </p>
+    </footer>
   </div>
 </template>
