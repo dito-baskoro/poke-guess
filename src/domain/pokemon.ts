@@ -75,8 +75,38 @@ export function normalizeGuess(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]/g, '')
 }
 
+function isWithinEditDistanceOne(a: string, b: string): boolean {
+  if (a === b) return true
+  if (Math.abs(a.length - b.length) > 1) return false
+
+  const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a]
+  let i = 0
+  let j = 0
+  let edits = 0
+  while (i < shorter.length && j < longer.length) {
+    if (shorter[i] === longer[j]) {
+      i += 1
+      j += 1
+      continue
+    }
+    edits += 1
+    if (edits > 1) return false
+    if (shorter.length === longer.length) {
+      i += 1
+      j += 1
+    } else {
+      j += 1
+    }
+  }
+  if (j < longer.length) edits += longer.length - j
+  return edits <= 1
+}
+
 export function isCorrectPokemonGuess(guess: string, answer: string): boolean {
-  return normalizeGuess(guess) === normalizeGuess(answer)
+  const normalizedGuess = normalizeGuess(guess)
+  const normalizedAnswer = normalizeGuess(answer)
+  if (normalizedGuess.length < 4) return normalizedGuess === normalizedAnswer
+  return isWithinEditDistanceOne(normalizedGuess, normalizedAnswer)
 }
 
 export function filterCatalog(

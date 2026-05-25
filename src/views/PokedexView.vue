@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import PokemonCard from '../components/PokemonCard.vue'
 import PaginationControls from '../components/PaginationControls.vue'
+import PokeballLoader from '../components/PokeballLoader.vue'
 import {
   filterCatalog,
   filterPokemonByType,
@@ -118,6 +119,10 @@ async function initialize() {
   await loadGeneration('pokedex.initialError')
 }
 
+function retryLoad() {
+  void loadGeneration('pokedex.generationError')
+}
+
 function previousPage() {
   if (currentPage.value > 1) currentPage.value -= 1
 }
@@ -161,15 +166,12 @@ watch(generation, async () => {
     <p>{{ t('pokedex.description') }}</p>
   </section>
 
-  <p v-if="error" class="status error">{{ error }}</p>
+  <p v-if="error && !isInitialLoading" class="error-block">
+    <span>{{ error }}</span>
+    <button type="button" class="is-ghost" @click="retryLoad">{{ t('pokedex.retry') }}</button>
+  </p>
 
-  <div v-if="isInitialLoading" class="pokeball-loader">
-    <div class="pokeball">
-      <div class="pokeball-top"></div>
-      <div class="pokeball-center"></div>
-      <div class="pokeball-bottom"></div>
-    </div>
-  </div>
+  <PokeballLoader v-if="isInitialLoading" />
 
   <template v-if="!isInitialLoading">
     <section class="pokedex-toolbar">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { pickNextPokemonId } from '../domain/challenge'
-import { isCorrectPokemonGuess } from '../domain/pokemon'
+import { isCorrectPokemonGuess, normalizeGuess, type PokemonCatalogEntry, toDisplayName } from '../domain/pokemon'
 import { scrambleName } from '../domain/scramble'
 import {
   createGameSession,
@@ -18,16 +18,26 @@ import { useTimer } from '../composables/useTimer'
 import { useElapsedTimer } from '../composables/useElapsedTimer'
 import { useLeaderboard } from '../composables/useLeaderboard'
 import ChallengeLeaderboard from '../components/ChallengeLeaderboard.vue'
+import PokeballLoader from '../components/PokeballLoader.vue'
 import { useI18n } from '../i18n'
 import { getTypeColor } from '../utils/typeColors'
 import bgAsset from '../assets/bg-asset.png'
 
 const TIMER_DURATION = 30
-const PLAYER_NAME = 'Ash Ketchum'
+const NAME_STORAGE_KEY = 'pokedex-player-name'
+const DEFAULT_PLAYER_NAME = 'Trainer'
 
 type GameMode = 'silhouette' | 'scramble'
 
-const ids = ref<number[]>([])
+function readStoredName(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    return window.localStorage.getItem(NAME_STORAGE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
 const pokemon = ref<Pokemon | null>(null)
 const session = ref<GameSession>(createGameSession())
 const guess = ref('')
@@ -40,23 +50,40 @@ const finalElapsedSeconds = ref<number | null>(null)
 const latestEntryId = ref<string | null>(null)
 const gameMode = ref<GameMode | null>(null)
 const scrambled = ref<string>('')
+const catalogNames = ref<string[]>([])
+const playerName = ref<string>(readStoredName())
 const { topEntries, recordEntry } = useLeaderboard()
 const { t } = useI18n()
 
-const allSelected = computed(() => selectedGenerations.value.length === SUPPORTED_GENERATIONS.length)
+watch(playerName, (next) => {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(NAME_STORAGE_KEY, next.trim())
+  } catch {
+    /* ignore quota */
+  }
+})
+
 const generationLabels = computed(() => ({
   1: t('common.generationI'),
   2: t('common.generationII'),
   3: t('common.generationIII'),
 }))
 
-function toggleSelectAll() {
-  if (allSelected.value) {
-    selectedGenerations.value = []
-  } else {
-    selectedGenerations.value = [...SUPPORTED_GENERATIONS]
-  }
-}
+const MAX_SUGGESTIONS = 8
+
+const datalistOptions = computed(() => {
+  const names = catalogNames.value.filter(
+    (name): name is string => typeof name === 'string' && name.length > 0,
+  )
+  const normalized = normalizeGuess(guess.value)
+  const matches = normalized
+    ? names.filter((name) => normalizeGuess(name).includes(normalized))
+    : names
+  return matches.slice(0, MAX_SUGGESTIONS).map((name) => ({ value: toDisplayName(name) }))
+})
+
+const resolvedPlayerName = computed(() => playerName.value.trim() || DEFAULT_PLAYER_NAME)
 
 function selectMode(mode: GameMode) {
   gameMode.value = mode
@@ -73,8 +100,9 @@ function backToModePicker() {
 const isSilhouetteMode = computed(() => gameMode.value === 'silhouette')
 const isScrambleMode = computed(() => gameMode.value === 'scramble')
 const isChallenging = computed(() => session.value.config.difficulty === 'challenging')
+const canStart = computed(() => selectedGenerations.value.length > 0)
 
-const { remaining, isRunning, start: startTimer, stop: stopTimer, reset: resetTimer } = useTimer(
+const { remaining, start: startTimer, stop: stopTimer, reset: resetTimer } = useTimer(
   TIMER_DURATION,
   () => {
     session.value = recordWrong(session.value)
@@ -110,7 +138,7 @@ function finishElapsedTimer() {
   stopElapsedTimer()
   finalElapsedSeconds.value = elapsed.value
   const entry = recordEntry({
-    name: PLAYER_NAME,
+    name: resolvedPlayerName.value,
     score: session.value.score,
     streak: session.value.bestStreak,
     timeSeconds: finalElapsedSeconds.value,
@@ -123,8 +151,9 @@ async function handleStart() {
   isLoading.value = true
   try {
     const config = { generations: [...selectedGenerations.value], difficulty: selectedDifficulty.value }
-    ids.value = (await pokemonRepository.getMultiGenerationCatalog(config.generations)).map((e) => e.id)
-    session.value = startGame(session.value, config, ids.value)
+    const catalog: PokemonCatalogEntry[] = await pokemonRepository.getMultiGenerationCatalog(config.generations)
+    catalogNames.value = catalog.map((entry) => entry.name)
+    session.value = startGame(session.value, config, catalog.map((e) => e.id))
     finalElapsedSeconds.value = null
     resetElapsedTimer()
     if (config.difficulty === 'challenging') startElapsedTimer()
@@ -143,12 +172,17 @@ async function loadRound(previousId: number | null) {
     pokemon.value = await pokemonRepository.getPokemon(nextId)
     scrambled.value = scrambleName(pokemon.value.name)
     guess.value = ''
+    error.value = null
     if (isChallenging.value) startTimer()
   } catch {
     error.value = t('challenge.roundError')
   } finally {
     isLoading.value = false
   }
+}
+
+function retryRound() {
+  loadRound(pokemon.value?.id ?? null)
 }
 
 function handleGuess() {
@@ -206,6 +240,17 @@ function handleTryAgain() {
   latestEntryId.value = null
   scrambled.value = ''
   gameMode.value = null
+  isRevealed.value = false
+}
+
+function handleExit() {
+  const inProgress = isChallenging.value && !isRevealed.value && session.value.phase === 'playing'
+  if (inProgress && typeof window !== 'undefined' && !window.confirm(t('challenge.exitConfirm'))) {
+    return
+  }
+  stopTimer()
+  stopElapsedTimer()
+  handleTryAgain()
 }
 </script>
 
@@ -239,13 +284,7 @@ function handleTryAgain() {
   <!-- SETUP PHASE -->
   <section v-else-if="session.phase === 'setup'" class="challenge-setup">
     <div v-if="isLoading" class="challenge-loading">
-      <div class="pokeball-loader">
-        <div class="pokeball">
-          <div class="pokeball-top"></div>
-          <div class="pokeball-center"></div>
-          <div class="pokeball-bottom"></div>
-        </div>
-      </div>
+      <PokeballLoader />
     </div>
 
     <template v-else>
@@ -255,10 +294,6 @@ function handleTryAgain() {
 
       <fieldset class="generation-picker">
         <legend>{{ t('challenge.selectGenerations') }}</legend>
-        <label class="checkbox-label">
-          <input type="checkbox" :checked="allSelected" @change="toggleSelectAll" />
-          {{ t('common.allGenerations') }}
-        </label>
         <label v-for="gen in SUPPORTED_GENERATIONS" :key="gen" class="checkbox-label">
           <input type="checkbox" :value="gen" v-model="selectedGenerations" />
           {{ generationLabels[gen] }}
@@ -283,9 +318,25 @@ function handleTryAgain() {
         </label>
       </fieldset>
 
-      <p v-if="error" class="status error">{{ error }}</p>
+      <div v-if="!isScrambleMode" class="setup-section">
+        <label>
+          <span>{{ t('challenge.playerNameLabel') }}</span>
+          <input
+            v-model="playerName"
+            type="text"
+            maxlength="20"
+            :placeholder="t('challenge.playerNamePlaceholder')"
+            autocomplete="nickname"
+          />
+        </label>
+      </div>
 
-      <button class="start-button" @click="handleStart" :disabled="selectedGenerations.length === 0">
+      <div v-if="error" class="error-block">
+        <span>{{ error }}</span>
+        <button type="button" class="is-ghost" @click="handleStart">{{ t('challenge.retry') }}</button>
+      </div>
+
+      <button class="start-button" @click="handleStart" :disabled="!canStart">
         {{ t('challenge.start') }}
       </button>
     </template>
@@ -313,28 +364,31 @@ function handleTryAgain() {
           <span v-for="i in session.maxHealth" :key="i" class="heart" :class="{ lost: i > session.health }" aria-hidden="true"></span>
         </span>
         <span>{{ t('challenge.correctCount') }} <strong>{{ session.score }}</strong></span>
+        <button type="button" class="is-ghost exit-button" @click="handleExit">
+          {{ t('challenge.exit') }}
+        </button>
       </div>
 
       <div
         v-if="isSilhouetteMode"
         class="silhouette-frame"
         :class="{ revealed: isRevealed }"
+        :data-primary-type="pokemon?.types[0] ?? null"
         :style="{ '--bg-asset': `url(${bgAsset})` }"
       >
         <div class="silhouette-image">
           <img v-if="pokemon?.imageUrl" :src="pokemon.imageUrl" :alt="pokemon.displayName" />
-          <div v-else class="pokeball-loader" aria-hidden="true">
-            <div class="pokeball">
-              <div class="pokeball-top"></div>
-              <div class="pokeball-center"></div>
-              <div class="pokeball-bottom"></div>
-            </div>
-          </div>
+          <PokeballLoader v-else inline />
         </div>
         <p v-if="isRevealed && pokemon" class="silhouette-name">{{ pokemon.displayName }}</p>
       </div>
 
-      <div v-else class="scramble-frame" :class="{ revealed: isRevealed }">
+      <div
+        v-else
+        class="scramble-frame"
+        :class="{ revealed: isRevealed }"
+        :data-primary-type="pokemon?.types[0] ?? null"
+      >
         <div
           v-if="pokemon"
           class="type-chip-row"
@@ -361,13 +415,7 @@ function handleTryAgain() {
         <div v-if="pokemon && !isRevealed" class="scrambled-letters" :aria-label="scrambled">
           <span v-for="(letter, i) in scrambled" :key="i" class="scramble-letter">{{ letter }}</span>
         </div>
-        <div v-else-if="!pokemon" class="pokeball-loader" aria-hidden="true">
-          <div class="pokeball">
-            <div class="pokeball-top"></div>
-            <div class="pokeball-center"></div>
-            <div class="pokeball-bottom"></div>
-          </div>
-        </div>
+        <PokeballLoader v-else-if="!pokemon" inline />
         <p v-if="isRevealed && pokemon" class="silhouette-name">{{ pokemon.displayName }}</p>
       </div>
 
@@ -378,23 +426,36 @@ function handleTryAgain() {
       </div>
 
       <template v-else>
-        <p v-if="error" class="status error">{{ error }}</p>
+        <div v-if="error" class="error-block">
+          <span>{{ error }}</span>
+          <button type="button" class="is-ghost" @click="retryRound">{{ t('challenge.retry') }}</button>
+        </div>
 
         <form class="guess-form" @submit.prevent="handleGuess">
           <input
             v-model="guess"
             type="text"
+            list="pokemon-name-suggestions"
+            autocomplete="off"
             :placeholder="isScrambleMode ? t('challenge.scrambleInputPlaceholder') : t('challenge.inputPlaceholder')"
             :disabled="isLoading"
           />
+          <datalist id="pokemon-name-suggestions">
+            <option v-for="option in datalistOptions" :key="option.value" :value="option.value"></option>
+          </datalist>
           <div class="guess-actions">
-            <button class="skip-button" type="button" :disabled="isLoading" @click="handleSkip">
-              {{ t('challenge.reveal') }}
-            </button>
             <button class="guess-button" type="submit" :disabled="isLoading">
               {{ t('challenge.guess') }}
             </button>
           </div>
+          <button
+            type="button"
+            class="reveal-link"
+            :disabled="isLoading"
+            @click="handleSkip"
+          >
+            {{ t('challenge.giveUp') }}
+          </button>
         </form>
       </template>
     </section>

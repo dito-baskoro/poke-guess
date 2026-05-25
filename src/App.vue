@@ -12,7 +12,6 @@ const { locale, t } = useI18n()
       <RouterLink to="/" class="brand">PokéGuess</RouterLink>
       <nav>
         <RouterLink to="/pokedex">{{ t('nav.pokedex') }}</RouterLink>
-        <RouterLink to="/challenge">{{ t('nav.challenge') }}</RouterLink>
       </nav>
       <div class="language-toggle" role="group" :aria-label="t('nav.language')">
         <button
@@ -44,8 +43,8 @@ const { locale, t } = useI18n()
     </main>
     <footer class="site-footer">
       <p>
-        Images and sounds © Nintendo. Send feedback and contribute to
-        <a href="https://github.com/dito-baskoro/poke-guess" target="_blank" rel="noopener noreferrer">github</a>
+        Images and sounds © Nintendo. Send feedback and contribute on
+        <a href="https://github.com/dito-baskoro/poke-guess" target="_blank" rel="noopener noreferrer">GitHub</a>.
       </p>
     </footer>
   </div>
